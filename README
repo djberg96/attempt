@@ -5,9 +5,8 @@
    Ruby 1.8.0 or later.
    
 == Installation
-   rake test (optional)
-   rake install (non-gem) or rake install_gem (gem)
-   
+   gem install attempt   
+
 == Synopsis
    require 'attempt'
    
@@ -54,7 +53,7 @@
    Artistic 2.0
 
 == Copyright
-   (C) 2006-2009, Daniel J. Berger
+   (C) 2006-2010, Daniel J. Berger
    All Rights Reserved
 
 == Author
