@@ -1,0 +1,61 @@
+== Description
+   A thin wrapper for begin + rescue + sleep + retry.
+
+== Prerequisites
+   Ruby 1.8.0 or later.
+   
+== Installation
+   rake test (optional)
+   rake install (non-gem) or rake install_gem (gem)
+   
+== Synopsis
+   require 'attempt'
+   
+   # Attempt to ftp to some host, trying 3 times with 30 seconds between
+   # attempts before finally raising an error.
+   #
+   attempt(3, 30){
+      Net::FTP.open(host, user, passwd){ ... }
+   }
+   
+   # Or, do things the long way...
+   code = Attempt.new{ |a|
+      a.tries    = 3
+      a.interval = 30
+   }
+   
+   code.attempt{
+      Net::FTP.open(host, user, passwd){ ... }
+   }
+
+== Future Plans
+   Add the ability to set an absolute maximum number of seconds to prevent
+   nested sleep/retry from delaying attempts longer than expected.
+
+== Known Bugs
+   None that I'm aware of. If you find any bugs, please log them on the
+   project page at http://www.rubyforge.org/projects/shards.
+
+== Notes From the Author
+   Use with caution. Specifically, make sure you aren't inadvertantly
+   wrapping code that already performs sleep + retry. Otherwise, you'll
+   end up with a series of nested retry's that could take much longer to
+   work than you expect. 
+
+== Acknowledgements
+   This library is partially based on Mark Fowler's 'Attempt' Perl module.
+
+== Warranty
+   This package is provided "as is" and without any express or
+   implied warranties, including, without limitation, the implied
+   warranties of merchantability and fitness for a particular purpose.
+
+== License
+   Artistic 2.0
+
+== Copyright
+   (C) 2006-2009, Daniel J. Berger
+   All Rights Reserved
+
+== Author
+   Daniel J. Berger

@@ -1,0 +1,21 @@
+== 0.2.0 - 26-Sep-2009
+* Now requires and uses the structured_warnings gem. If a block of code fails
+  prior to reaching the maximum number of tries, and warnings are on, then
+  an Attempt::Warning is raised.
+* Fixed a packaging bug.
+* Refactored the attempt.gemspec file a bit.
+* Added the 'gem' task to the Rakefile.
+
+== 0.1.2 - 1-Aug-2009
+* License changed to Artistic 2.0.
+* Added test-unit as a development dependency.
+* Test file renamed to more closely follow Ruby style.
+* Gemspec updates, including addition of license.
+
+== 0.1.1 - 31-Jul-2007
+* Added a Rakefile with tasks for testing and installation.
+* Removed the install.rb file, since installation is now handled by the Rakefile.
+* Some minor doc updates.
+
+== 0.1.0 - 9-Jun-2006
+* Initial commit
