@@ -1,9 +1,6 @@
 == Description
    A thin wrapper for begin + rescue + sleep + retry.
 
-== Prerequisites
-   Ruby 1.8.0 or later.
-   
 == Installation
    gem install attempt   
 
@@ -33,7 +30,9 @@
 
 == Known Bugs
    None that I'm aware of. If you find any bugs, please log them on the
-   project page at http://www.rubyforge.org/projects/shards.
+   project page at:
+
+   https://github.com/djberg96/attempt
 
 == Notes From the Author
    Use with caution. Specifically, make sure you aren't inadvertantly
@@ -53,7 +52,7 @@
    Artistic 2.0
 
 == Copyright
-   (C) 2006-2010, Daniel J. Berger
+   (C) 2006-2014, Daniel J. Berger
    All Rights Reserved
 
 == Author
