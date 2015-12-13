@@ -5,84 +5,84 @@ require 'structured_warnings'
 # running the same method before actually failing.
 class Attempt
 
-   # The version of the attempt library.
-   VERSION = '0.2.1'
+  # The version of the attempt library.
+  VERSION = '0.2.1'
 
-   # Warning raised if an attempt fails before the maximum number of tries
-   # has been reached.
-   class Warning < StandardWarning; end
+  # Warning raised if an attempt fails before the maximum number of tries
+  # has been reached.
+  class Warning < StandardWarning; end
 
-   # Number of attempts to make before failing.  The default is 3.
-   attr_accessor :tries
+  # Number of attempts to make before failing.  The default is 3.
+  attr_accessor :tries
 
-   # Number of seconds to wait between attempts.  The default is 60.
-   attr_accessor :interval
+  # Number of seconds to wait between attempts.  The default is 60.
+  attr_accessor :interval
 
-   # A boolean value that determines whether errors that would have been
-   # raised should be sent to STDERR as warnings.  The default is true.
-   attr_accessor :warnings
+  # A boolean value that determines whether errors that would have been
+  # raised should be sent to STDERR as warnings.  The default is true.
+  attr_accessor :warnings
 
-   # If you provide an IO handle to this option then errors that would
-   # have been raised are sent to that handle.
-   attr_accessor :log
+  # If you provide an IO handle to this option then errors that would
+  # have been raised are sent to that handle.
+  attr_accessor :log
 
-   # If set, this increments the interval with each failed attempt by that
-   # number of seconds.
-   attr_accessor :increment
+  # If set, this increments the interval with each failed attempt by that
+  # number of seconds.
+  attr_accessor :increment
 
-   # If set, the code block is further wrapped in a timeout block.
-   attr_accessor :timeout
+  # If set, the code block is further wrapped in a timeout block.
+  attr_accessor :timeout
 
-   # Determines which exception level to check when looking for errors to
-   # retry.  The default is 'Exception' (i.e. all errors).
-   attr_accessor :level
+  # Determines which exception level to check when looking for errors to
+  # retry.  The default is 'Exception' (i.e. all errors).
+  attr_accessor :level
 
-   # :call-seq:
-   #    Attempt.new{ |a| ... }
-   #
-   # Creates and returns a new +Attempt+ object.  Use a block to set the
-   # accessors.
-   #
-   def initialize
-      @tries     = 3         # Reasonable default
-      @interval  = 60        # Reasonable default
-      @log       = nil       # Should be an IO handle, if provided
-      @increment = nil       # Should be an int, if provided
-      @timeout   = nil       # Wrap the code in a timeout block if provided
-      @level     = Exception # Level of exception to be caught
-      @warnings  = true      # Errors sent to STDERR as warnings if true
+  # :call-seq:
+  #    Attempt.new{ |a| ... }
+  #
+  # Creates and returns a new +Attempt+ object.  Use a block to set the
+  # accessors.
+  #
+  def initialize
+    @tries     = 3         # Reasonable default
+    @interval  = 60        # Reasonable default
+    @log       = nil       # Should be an IO handle, if provided
+    @increment = nil       # Should be an int, if provided
+    @timeout   = nil       # Wrap the code in a timeout block if provided
+    @level     = Exception # Level of exception to be caught
+    @warnings  = true      # Errors sent to STDERR as warnings if true
 
-      yield self if block_given?
+    yield self if block_given?
    end
 
-   # Attempt to perform the operation in the provided block up to +tries+
-   # times, sleeping +interval+ between each try.
-   #
-   # You will not typically use this method directly, but the Kernel#attempt
-   # method instead.
-   #
-   def attempt
-      count = 1
-      begin
-         if @timeout
-            Timeout.timeout(@timeout){ yield }
-         else
-            yield
-         end
-      rescue @level => error
-         @tries -= 1
-         if @tries > 0
-            msg = "Error on attempt # #{count}: #{error}; retrying"
-            count += 1
-            warn Warning, msg if @warnings
-            @log.puts msg if @log
-            @interval += @increment if @increment
-            sleep @interval
-            retry
-         end
-         raise
+  # Attempt to perform the operation in the provided block up to +tries+
+  # times, sleeping +interval+ between each try.
+  #
+  # You will not typically use this method directly, but the Kernel#attempt
+  # method instead.
+  #
+  def attempt
+    count = 1
+    begin
+      if @timeout
+        Timeout.timeout(@timeout){ yield }
+      else
+        yield
       end
-   end
+    rescue @level => error
+      @tries -= 1
+      if @tries > 0
+        msg = "Error on attempt # #{count}: #{error}; retrying"
+        count += 1
+        warn Warning, msg if @warnings
+        @log.puts msg if @log
+        @interval += @increment if @increment
+        sleep @interval
+        retry
+      end
+      raise
+    end
+  end
 end
 
 module Kernel
