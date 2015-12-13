@@ -1,4 +1,4 @@
-require 'rubyspecs'
+require 'rubygems'
 
 Gem::Specification.new do |spec|
   spec.name       = 'attempt'
