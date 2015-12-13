@@ -1,6 +1,6 @@
-== 0.2.1 - ???
-* Updated gem:create task for Rubygems 2.x.
-* Added a Gemfile, mostly so I could get Travis CI integration on github.
+== 0.2.1 - 13-Dec-2015
+* This gem is now signed.
+* Updates to the Rakefile and gemspec.
 
 == 0.2.0 - 26-Sep-2009
 * Now requires and uses the structured_warnings gem. If a block of code fails
