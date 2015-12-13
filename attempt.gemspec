@@ -1,28 +1,27 @@
-require 'rubygems'
+require 'rubyspecs'
 
-Gem::Specification.new do |gem|
-   gem.name      = 'attempt'
-   gem.version   = '0.2.0'
-   gem.author    = 'Daniel J. Berger'
-   gem.license   = 'Artistic 2.0'
-   gem.email     = 'djberg96@gmail.com'
-   gem.homepage  = 'http://www.rubyforge.org/projects/shards'
-   gem.summary   = 'A thin wrapper for begin + rescue + sleep + retry'
-   gem.test_file = 'test/test_attempt.rb'
-   gem.has_rdoc  = true
-   gem.files     = Dir['**/*'].reject{ |f| f.include?('CVS') }
+Gem::Specification.new do |spec|
+  spec.name       = 'attempt'
+  spec.version    = '0.2.1'
+  spec.author     = 'Daniel J. Berger'
+  spec.license    = 'Artistic 2.0'
+  spec.email      = 'djberg96@gmail.com'
+  spec.homepage   = 'http://github.com/djberg96/attempt'
+  spec.summary    = 'A thin wrapper for begin + rescue + sleep + retry'
+  spec.test_file  = 'test/test_attempt.rb'
+  spec.files      = Dir['**/*'].reject{ |f| f.include?('git') }
+  spec.cert_chain = Dir['certs/*']
+  
+  spec.extra_rdoc_files  = ['README','CHANGES','MANIFEST']
 
-   gem.extra_rdoc_files  = ['README','CHANGES','MANIFEST']
-   gem.rubyforge_project = 'shards'
+  spec.add_dependency('structured_warnings')
+  spec.add_development_dependency('test-unit')
 
-   gem.add_dependency('structured_warnings')
-   gem.add_development_dependency('test-unit', '>= 2.0.3')
-
-   gem.description = <<-EOF
-      The attempt library provides a thin wrapper for the typical
-      begin/rescue/sleep/retry dance. Use this in order to robustly
-      handle blocks of code that could briefly flake out, such as a socket
-      or database connection, where it's often better to try again after
-      a brief period rather than fail immediately.
-   EOF
+  spec.description = <<-EOF
+    The attempt library provides a thin wrapper for the typical
+    begin/rescue/sleep/retry dance. Use this in order to robustly
+    handle blocks of code that could briefly flake out, such as a socket
+    or database connection, where it's often better to try again after
+    a brief period rather than fail immediately.
+  EOF
 end
