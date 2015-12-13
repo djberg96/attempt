@@ -1,6 +1,7 @@
 == 0.2.1 - 13-Dec-2015
 * This gem is now signed.
 * Updates to the Rakefile and gemspec.
+* Added a caveat regarding the timeout module to the README.
 
 == 0.2.0 - 26-Sep-2009
 * Now requires and uses the structured_warnings gem. If a block of code fails
