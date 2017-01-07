@@ -53,7 +53,7 @@ class Attempt
     @warnings  = true      # Errors sent to STDERR as warnings if true
 
     yield self if block_given?
-   end
+  end
 
   # Attempt to perform the operation in the provided block up to +tries+
   # times, sleeping +interval+ between each try.
