@@ -6,20 +6,20 @@ require 'structured_warnings'
 class Attempt
 
   # The version of the attempt library.
-  VERSION = '0.2.1'
+  VERSION = '0.3.0'.freeze
 
   # Warning raised if an attempt fails before the maximum number of tries
   # has been reached.
-  class Warning < StandardWarning; end
+  class Warning < StructuredWarnings::StandardWarning; end
 
-  # Number of attempts to make before failing.  The default is 3.
+  # Number of attempts to make before failing. The default is 3.
   attr_accessor :tries
 
-  # Number of seconds to wait between attempts.  The default is 60.
+  # Number of seconds to wait between attempts. The default is 60.
   attr_accessor :interval
 
   # A boolean value that determines whether errors that would have been
-  # raised should be sent to STDERR as warnings.  The default is true.
+  # raised should be sent to STDERR as warnings. The default is true.
   attr_accessor :warnings
 
   # If you provide an IO handle to this option then errors that would
@@ -50,7 +50,7 @@ class Attempt
     @increment = nil       # Should be an int, if provided
     @timeout   = nil       # Wrap the code in a timeout block if provided
     @level     = Exception # Level of exception to be caught
-    @warnings  = true      # Errors sent to STDERR as warnings if true
+    @warnings  = true      # Errors are sent to STDERR as warnings if true
 
     yield self if block_given?
   end
@@ -112,9 +112,9 @@ module Kernel
    def attempt(tries = 3, interval = 60, timeout = nil, &block)
       raise 'no block given' unless block_given?
       Attempt.new{ |a|
-         a.tries    = tries
-         a.interval = interval
-         a.timeout  = timeout if timeout
+        a.tries    = tries
+        a.interval = interval
+        a.timeout  = timeout if timeout
       }.attempt(&block)
    end
 end
