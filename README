@@ -39,6 +39,9 @@
   Also, this library uses the timeout library internally, which has some
   known issues. See Future Plans, below.
 
+  As of version 0.3.0, this library requires structured_warnings 0.3.0 or
+  later. This is necessary because of changes in Ruby 2.4.
+
 == Future Plans
   Add the ability to set an absolute maximum number of seconds to prevent
   nested sleep/retry from delaying attempts longer than expected.
@@ -57,7 +60,7 @@
   Artistic 2.0
 
 == Copyright
-  (C) 2006-2015, Daniel J. Berger
+  (C) 2006-2017, Daniel J. Berger
   All Rights Reserved
 
 == Author
