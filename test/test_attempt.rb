@@ -23,7 +23,7 @@ class TC_Attempt < Test::Unit::TestCase
   end
 
   test "version constant is set to expected value" do
-    assert_equal('0.3.1', Attempt::VERSION)
+    assert_equal('0.3.2', Attempt::VERSION)
   end
 
   test "attempt works as expected without arguments" do
