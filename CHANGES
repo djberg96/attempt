@@ -1,3 +1,6 @@
+== 0.3.2 - 4-Apr-2017
+* Fix metadata key names.
+
 == 0.3.1 - 4-Apr-2017
 * Added some metadata to the gemspec.
 
