@@ -2,7 +2,7 @@ require 'rubygems'
 
 Gem::Specification.new do |spec|
   spec.name       = 'attempt'
-  spec.version    = '0.3.1'
+  spec.version    = '0.3.2'
   spec.author     = 'Daniel J. Berger'
   spec.license    = 'Artistic 2.0'
   spec.email      = 'djberg96@gmail.com'
@@ -15,12 +15,10 @@ Gem::Specification.new do |spec|
   spec.extra_rdoc_files  = ['README','CHANGES','MANIFEST']
 
   spec.metadata = {
-    'issue_tracker' => 'https://github.com/djberg96/attempt/issues',
-    'changelog'     => 'https://github.com/djberg96/attempt/blob/master/CHANGES',
-    'code'          => 'https://github.com/djberg96/attempt/blob/master/lib/attempt.rb',
-    'docs'          => 'https://github.com/djberg96/attempt/blob/master/README',
-    'bugs'          => 'https://github.com/djberg96/attempt/issues',
-    'wiki'          => 'https://github.com/djberg96/attempt/wiki'
+    'changelog_uri'   => 'https://github.com/djberg96/attempt/blob/master/CHANGES',
+    'source_code_uri' => 'https://github.com/djberg96/attempt/blob/master/lib/attempt.rb',
+    'bug_tracker_uri' => 'https://github.com/djberg96/attempt/issues',
+    'wiki_uri'        => 'https://github.com/djberg96/attempt/wiki'
   }
 
   spec.add_dependency('structured_warnings', '~> 0.3.0')
