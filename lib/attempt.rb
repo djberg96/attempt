@@ -1,4 +1,4 @@
-require 'timeout'
+require 'safe_timeout'
 require 'structured_warnings'
 
 # The Attempt class encapsulates methods related to multiple attempts at
@@ -51,7 +51,7 @@ class Attempt
   # * warnings  - Boolean value that indicates whether or not errors are treated as warnings
   #               until the maximum number of attempts has been made. The default is true.
   # * timeout   - Boolean value to indicate whether or not to automatically wrap your
-  #               proc in a Timeout block. The default is false.
+  #               proc in a SafeTimeout block. The default is false.
   #
   # Example:
   #
@@ -78,7 +78,7 @@ class Attempt
     count = 1
     begin
       if @timeout
-        Timeout.timeout(@timeout){ yield }
+        SafeTimeout.timeout(@timeout){ yield }
       else
         yield
       end
@@ -120,7 +120,7 @@ module Kernel
    #    # Make 3 attempts to connect to the database, 60 seconds apart.
    #    attempt{ DBI.connect(dsn, user, passwd) }
    #
-   def attempt(**kwargs)
+   def attempt(**kwargs, &block)
      object = Attempt.new(kwargs)
      object.attempt(&block)
    end

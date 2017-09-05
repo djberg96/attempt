@@ -23,7 +23,7 @@ class TC_Attempt < Test::Unit::TestCase
   end
 
   test "version constant is set to expected value" do
-    assert_equal('0.3.2', Attempt::VERSION)
+    assert_equal('0.4.0', Attempt::VERSION)
   end
 
   test "attempt works as expected without arguments" do
@@ -31,24 +31,28 @@ class TC_Attempt < Test::Unit::TestCase
   end
 
   test "attempt retries the number of times specified" do
-    assert_nothing_raised{ attempt(@tries){ $value += 1; raise if $value < 2 } }
+    assert_nothing_raised{ attempt(tries: @tries){ $value += 1; raise if $value < 2 } }
     assert_equal(2, $value)
   end
 
   test "attempt retries the number of times specified with interval" do
-    assert_nothing_raised{ attempt(@tries, @interval){ $value += 1; raise if $value < 2 } }
+    assert_nothing_raised{
+      attempt(tries: @tries, interval: @interval){ $value += 1; raise if $value < 2 }
+    }
   end
 
   test "attempt retries the number of times specified with interval and timeout" do
-    assert_nothing_raised{ attempt(@tries, @interval, @timeout){ $value += 1; raise if $value < 2 } }
+    assert_nothing_raised{
+      attempt(tries: @tries, interval: @interval, timeout: @timeout){ $value += 1; raise if $value < 2 }
+    }
   end
 
   test "attempt raises a timeout error if timeout value is exceeded" do
-    assert_raises(Timeout::Error){ attempt(1, 1, @timeout){ sleep 5 } }
+    assert_raises(Timeout::Error){ attempt(tries: 1, interval: 1, timeout: @timeout){ sleep 5 } }
   end
 
   test "attempt raises exception as expected" do
-    assert_raises(RuntimeError){ attempt(2, 2){ raise } }
+    assert_raises(RuntimeError){ attempt(tries: 2, interval: 2){ raise } }
   end
 
   def teardown
