@@ -1,3 +1,9 @@
+== 0.4.0 - 5-Sep-2017
+* Switched constructor to use keyword arguments.
+* Replaced Timeout with SafeTimeout and added the safe_timeout dependency.
+* The :log option now accepts either an IO or Logger object.
+* Updated cert.
+
 == 0.3.2 - 4-Apr-2017
 * Fix metadata key names.
 
