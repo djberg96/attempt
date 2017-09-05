@@ -45,7 +45,7 @@ class Attempt
   #
   # * tries     - The number of attempts to make before giving up. The default is 3.
   # * interval  - The delay in seconds between each attempt. The default is 60.
-  # * log       - An IO handle where warnings/errors are logged to. The default is nil.
+  # * log       - An IO handle or Logger instance where warnings/errors are logged to. The default is nil.
   # * increment - The amount to increment the interval between tries. The default is 0.
   # * level     - The level of exception to be caught. The default is everything, i.e. Exception.
   # * warnings  - Boolean value that indicates whether or not errors are treated as warnings
@@ -88,7 +88,11 @@ class Attempt
         msg = "Error on attempt # #{count}: #{error}; retrying"
         count += 1
         warn Warning, msg if @warnings
-        @log.puts msg if @log
+
+        if @log # Accept an IO or Logger object
+          @log.respond_to?(:puts) ? @log.puts(msg) : @log.warn(msg)
+        end
+
         @interval += @increment if @increment
         sleep @interval
         retry
