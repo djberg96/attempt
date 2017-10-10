@@ -9,16 +9,16 @@
    
   # Attempt to ftp to some host, trying 3 times with 30 seconds between
   # attempts before finally raising an error.
-  #
-  attempt(3, 30){
+ 
+  attempt(tries: 3, interval: 30){
     Net::FTP.open(host, user, passwd){ ... }
   }
    
   # Or, do things the long way...
-  code = Attempt.new{ |a|
+  code = Attempt.new do |a|
     a.tries    = 3
     a.interval = 30
-  }
+  end
    
   code.attempt{
     Net::FTP.open(host, user, passwd){ ... }
