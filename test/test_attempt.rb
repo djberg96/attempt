@@ -55,6 +55,49 @@ class TC_Attempt < Test::Unit::TestCase
     assert_raises(RuntimeError){ attempt(tries: 2, interval: 2){ raise } }
   end
 
+  test "attempt raises exception when nested" do
+    assert_raises(Attempt::NestedError){
+      attempt(tries: 2, interval: 2){
+        attempt(tries: 2, interval: 2){
+        }
+      }
+    }
+  end
+
+  test "attempt warns when nested" do
+    assert_warn(StructuredWarnings::StandardWarning){
+      attempt(tries: 2, interval: 2, allow_nested: true){
+        attempt(tries: 2, interval: 2){
+        }
+      }
+    }
+
+    assert_warn(StructuredWarnings::StandardWarning){
+      attempt(tries: 2, interval: 2, allow_nested: true){
+        attempt(tries: 2, interval: 2, allow_nested: true){
+          attempt(tries: 2, interval: 2){
+          }
+        }
+      }
+    }
+
+    assert_warn(StructuredWarnings::StandardWarning){
+      attempt(tries: 2, interval: 2, allow_nested: true){
+        attempt(tries: 2, interval: 2, allow_nested: true){
+          attempt(tries: 2, interval: 2, allow_nested: false){
+          }
+        }
+      }
+    }
+
+    assert_raises(Attempt::NestedError){
+      attempt(tries: 2, interval: 2){
+        attempt(tries: 2, interval: 2, allow_nested: true){
+        }
+      }
+    }
+  end
+
   def teardown
     @tries    = nil
     @interval = nil

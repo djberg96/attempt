@@ -34,7 +34,8 @@
   Use with caution. Specifically, make sure you aren't inadvertantly
   wrapping code that already performs sleep + retry. Otherwise, you'll
   end up with a series of nested retry's that could take much longer to
-  work than you expect. 
+  work than you expect. There is protection by default against accidentally
+  nesting calls to attempt.
 
   Also, this library uses the timeout library internally, which has some
   known issues. See Future Plans, below.

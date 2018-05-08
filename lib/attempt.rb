@@ -4,6 +4,7 @@ require 'structured_warnings'
 # The Attempt class encapsulates methods related to multiple attempts at
 # running the same method before actually failing.
 class Attempt
+  @@attempts = []
 
   # The version of the attempt library.
   VERSION = '0.4.0'.freeze
@@ -11,6 +12,8 @@ class Attempt
   # Warning raised if an attempt fails before the maximum number of tries
   # has been reached.
   class Warning < StructuredWarnings::StandardWarning; end
+
+  class NestedError < StandardError; end
 
   # Number of attempts to make before failing. The default is 3.
   attr_accessor :tries
@@ -37,21 +40,25 @@ class Attempt
   # retry.  The default is 'Exception' (i.e. all errors).
   attr_accessor :level
 
+  # Allow nested attempts. The default is to not.
+  attr_accessor :allow_nested
+
   # :call-seq:
   #    Attempt.new(**kwargs)
   #
   # Creates and returns a new +Attempt+ object. The supported keyword options
   # are as follows:
   #
-  # * tries     - The number of attempts to make before giving up. The default is 3.
-  # * interval  - The delay in seconds between each attempt. The default is 60.
-  # * log       - An IO handle or Logger instance where warnings/errors are logged to. The default is nil.
-  # * increment - The amount to increment the interval between tries. The default is 0.
-  # * level     - The level of exception to be caught. The default is everything, i.e. Exception.
-  # * warnings  - Boolean value that indicates whether or not errors are treated as warnings
-  #               until the maximum number of attempts has been made. The default is true.
-  # * timeout   - Boolean value to indicate whether or not to automatically wrap your
-  #               proc in a SafeTimeout block. The default is false.
+  # * tries        - The number of attempts to make before giving up. The default is 3.
+  # * interval     - The delay in seconds between each attempt. The default is 60.
+  # * log          - An IO handle or Logger instance where warnings/errors are logged to. The default is nil.
+  # * increment    - The amount to increment the interval between tries. The default is 0.
+  # * level        - The level of exception to be caught. The default is everything, i.e. Exception.
+  # * warnings     - Boolean value that indicates whether or not errors are treated as warnings
+  #                  until the maximum number of attempts has been made. The default is true.
+  # * timeout      - Boolean value to indicate whether or not to automatically wrap your
+  #                  proc in a SafeTimeout block. The default is false.
+  # * allow_nested - Allow nested attempts. The default is to not.
   #
   # Example:
   #
@@ -59,13 +66,14 @@ class Attempt
   #   a.attempt{ http.get("http://something.foo.com") }
   #
   def initialize(**options)
-    @tries     = options[:tries] || 3         # Reasonable default
-    @interval  = options[:interval] || 60     # Reasonable default
-    @log       = options[:log]                # Should be an IO handle, if provided
-    @increment = options[:increment] || 0     # Should be an integer, if provided
-    @timeout   = options[:timeout] || false   # Wrap the code in a timeout block if provided
-    @level     = options[:level] || Exception # Level of exception to be caught
-    @warnings  = options[:warnings] || true   # Errors are sent to STDERR as warnings if true
+    @tries        = options[:tries] || 3            # Reasonable default
+    @interval     = options[:interval] || 60        # Reasonable default
+    @log          = options[:log]                   # Should be an IO handle, if provided
+    @increment    = options[:increment] || 0        # Should be an integer, if provided
+    @timeout      = options[:timeout] || false      # Wrap the code in a timeout block if provided
+    @level        = options[:level] || Exception    # Level of exception to be caught
+    @warnings     = options[:warnings] || true      # Errors are sent to STDERR as warnings if true
+    @allow_nested = options[:allow_nested] || false
   end
 
   # Attempt to perform the operation in the provided block up to +tries+
@@ -75,29 +83,46 @@ class Attempt
   # method instead.
   #
   def attempt
-    count = 1
-    begin
-      if @timeout
-        SafeTimeout.timeout(@timeout){ yield }
+    unless @@attempts.empty?
+      msg = "Already inside Attempt block"
+      if @@attempts.all? { |a| a }
+        warn StructuredWarnings::StandardWarning, msg
       else
-        yield
+        fail NestedError, msg
       end
-    rescue @level => error
-      @tries -= 1
-      if @tries > 0
-        msg = "Error on attempt # #{count}: #{error}; retrying"
-        count += 1
-        warn Warning, msg if @warnings
+    end
 
-        if @log # Accept an IO or Logger object
-          @log.respond_to?(:puts) ? @log.puts(msg) : @log.warn(msg)
+    begin
+      @@attempts.push(@allow_nested)
+      count = 1
+
+      begin
+        if @timeout
+          SafeTimeout.timeout(@timeout){ yield }
+        else
+          yield
         end
+      rescue NestedError => error
+        raise error
+      rescue @level => error
+        @tries -= 1
+        if @tries > 0
+          msg = "Error on attempt # #{count}: #{error}; retrying"
+          count += 1
+          warn Warning, msg if @warnings
 
-        @interval += @increment if @increment
-        sleep @interval
-        retry
+          if @log # Accept an IO or Logger object
+            @log.respond_to?(:puts) ? @log.puts(msg) : @log.warn(msg)
+          end
+
+          @interval += @increment if @increment
+          sleep @interval
+          retry
+        end
+        raise
       end
-      raise
+    ensure
+      @@attempts.pop
     end
   end
 end
