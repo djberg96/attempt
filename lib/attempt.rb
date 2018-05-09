@@ -83,6 +83,49 @@ class Attempt
   # method instead.
   #
   def attempt
+    check_nested
+
+    begin
+      @@attempts.push(@allow_nested)
+      attempt_with_retries{ yield }
+    ensure
+      @@attempts.pop
+    end
+  end
+
+  private
+
+  def attempt_with_retries
+    count = 1
+
+    begin
+      if @timeout
+        SafeTimeout.timeout(@timeout){ yield }
+      else
+        yield
+      end
+    rescue NestedError => error
+      raise error
+    rescue @level => error
+      @tries -= 1
+      if @tries > 0
+        msg = "Error on attempt # #{count}: #{error}; retrying"
+        count += 1
+        warn Warning, msg if @warnings
+
+        if @log # Accept an IO or Logger object
+          @log.respond_to?(:puts) ? @log.puts(msg) : @log.warn(msg)
+        end
+
+        @interval += @increment if @increment
+        sleep @interval
+        retry
+      end
+      raise
+    end
+  end
+
+  def check_nested
     unless @@attempts.empty?
       msg = "Already inside Attempt block"
       if @@attempts.all? { |a| a }
@@ -90,39 +133,6 @@ class Attempt
       else
         fail NestedError, msg
       end
-    end
-
-    begin
-      @@attempts.push(@allow_nested)
-      count = 1
-
-      begin
-        if @timeout
-          SafeTimeout.timeout(@timeout){ yield }
-        else
-          yield
-        end
-      rescue NestedError => error
-        raise error
-      rescue @level => error
-        @tries -= 1
-        if @tries > 0
-          msg = "Error on attempt # #{count}: #{error}; retrying"
-          count += 1
-          warn Warning, msg if @warnings
-
-          if @log # Accept an IO or Logger object
-            @log.respond_to?(:puts) ? @log.puts(msg) : @log.warn(msg)
-          end
-
-          @interval += @increment if @increment
-          sleep @interval
-          retry
-        end
-        raise
-      end
-    ensure
-      @@attempts.pop
     end
   end
 end
