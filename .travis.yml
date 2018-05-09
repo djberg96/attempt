@@ -1,0 +1,5 @@
+language: ruby
+
+install:
+  - gem install safe_timeout
+  - gem install structured_warnings
