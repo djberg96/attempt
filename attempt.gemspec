@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
     'wiki_uri'        => 'https://github.com/djberg96/attempt/wiki'
   }
 
-  spec.add_dependency('structured_warnings', '~> 0.3.0')
+  spec.add_dependency('structured_warnings', '~> 0.4.0')
   spec.add_dependency('safe_timeout', '~> 0.0.5')
 
   spec.add_development_dependency('test-unit')
@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.description = <<-EOF
     The attempt library provides a thin wrapper for the typical
     begin/rescue/sleep/retry dance. Use this in order to robustly
-    handle blocks of code that could briefly flake out, such as a socket
+    handle blocks of code that could briefly flake out, such as an http
     or database connection, where it's often better to try again after
     a brief period rather than fail immediately.
   EOF
