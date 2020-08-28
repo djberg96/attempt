@@ -1,3 +1,9 @@
+== 0.5.1 - 28-Aug-2020
+* Added a Gemfile.
+* Updated Rakefile to clean .lock files.
+* Bumped structured_warnings version to 0.4.0 so that it works with Ruby 2.7.
+  Thanks go to Alexey Zapriy for the spot.
+
 == 0.5.0 - 2-Jun-2020
 * Switched to Apache-2.0 license, added LICENSE file.
 * Updated cert again.
