@@ -23,7 +23,7 @@ class TC_Attempt < Test::Unit::TestCase
   end
 
   test "version constant is set to expected value" do
-    assert_equal('0.5.0', Attempt::VERSION)
+    assert_equal('0.5.1', Attempt::VERSION)
     assert_true(Attempt::VERSION.frozen?)
   end
 
