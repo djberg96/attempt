@@ -2,7 +2,7 @@ require 'rake'
 require 'rake/clean'
 require 'rake/testtask'
 
-CLEAN.include('**/*.gem', '**/*.rbc')
+CLEAN.include('**/*.gem', '**/*.rbc', '**/*.lock')
 
 namespace :gem do
   desc 'Build the attempt gem'
