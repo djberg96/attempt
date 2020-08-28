@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
     'wiki_uri'        => 'https://github.com/djberg96/attempt/wiki'
   }
 
-  spec.add_dependency('structured_warnings', '~> 0.3.0')
+  spec.add_dependency('structured_warnings', '>= 0.3.0')
   spec.add_dependency('safe_timeout', '~> 0.0.5')
 
   spec.add_development_dependency('test-unit')
