@@ -6,7 +6,7 @@ require 'structured_warnings'
 class Attempt
 
   # The version of the attempt library.
-  VERSION = '0.5.1'.freeze
+  VERSION = '0.6.0'.freeze
 
   # Warning raised if an attempt fails before the maximum number of tries
   # has been reached.
