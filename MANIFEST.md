@@ -1,7 +1,7 @@
-* CHANGES
+* CHANGES.md
 * LICENSE
-* MANIFEST
-* README
+* MANIFEST.md
+* README.md
 * Gemfile
 * Rakefile
 * attempt.gemspec
