@@ -1,3 +1,7 @@
+## 0.6.1 - 20-Oct-2020
+* Switched the README, MANIFEST and CHANGES to markdown format.
+* Fiddling with the .travis.yml file again.
+
 ## 0.6.0 - 17-Sep-2020
 
 * Switched from test-unit to rspec and rewrote the specs.

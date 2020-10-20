@@ -23,7 +23,7 @@ RSpec.describe Attempt do
   end
 
   example "version constant is set to expected value" do
-    expect(Attempt::VERSION).to eq('0.6.0')
+    expect(Attempt::VERSION).to eq('0.6.1')
     expect(Attempt::VERSION).to be_frozen
   end
 
