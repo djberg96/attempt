@@ -12,8 +12,6 @@ Gem::Specification.new do |spec|
   spec.files      = Dir['**/*'].reject{ |f| f.include?('git') }
   spec.cert_chain = Dir['certs/*']
   
-  spec.extra_rdoc_files  = ['README','CHANGES','MANIFEST']
-
   spec.metadata = {
     'changelog_uri'   => 'https://github.com/djberg96/attempt/blob/master/CHANGES',
     'source_code_uri' => 'https://github.com/djberg96/attempt/blob/master/lib/attempt.rb',
