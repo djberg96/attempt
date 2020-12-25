@@ -125,7 +125,7 @@ module Kernel
    #    attempt{ DBI.connect(dsn, user, passwd) }
    #
    def attempt(**kwargs, &block)
-     object = Attempt.new(kwargs)
+     object = Attempt.new(**kwargs)
      object.attempt(&block)
    end
 end
