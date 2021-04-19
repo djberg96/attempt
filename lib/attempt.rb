@@ -75,11 +75,11 @@ class Attempt
   # You will not typically use this method directly, but the Kernel#attempt
   # method instead.
   #
-  def attempt
+  def attempt(&block)
     count = 1
     begin
       if @timeout
-        SafeTimeout.timeout(@timeout){ yield }
+        SafeTimeout.timeout(@timeout, &block)
       else
         yield
       end
