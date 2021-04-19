@@ -103,6 +103,7 @@ class Attempt
   end
 end
 
+# Extend the Kernel module with a simple interface for the Attempt class.
 module Kernel
   # :call-seq:
   #    attempt(tries: 3, interval: 60, timeout: 10){ # some op }
