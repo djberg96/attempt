@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 require 'safe_timeout'
 require 'structured_warnings'
 
 # The Attempt class encapsulates methods related to multiple attempts at
 # running the same method before actually failing.
 class Attempt
-
   # The version of the attempt library.
-  VERSION = '0.6.1'.freeze
+  VERSION = '0.6.1'
 
   # Warning raised if an attempt fails before the maximum number of tries
   # has been reached.
@@ -74,18 +75,18 @@ class Attempt
   # You will not typically use this method directly, but the Kernel#attempt
   # method instead.
   #
-  def attempt
+  def attempt(&block)
     count = 1
     begin
       if @timeout
-        SafeTimeout.timeout(@timeout){ yield }
+        SafeTimeout.timeout(@timeout, &block)
       else
         yield
       end
-    rescue @level => error
+    rescue @level => err
       @tries -= 1
       if @tries > 0
-        msg = "Error on attempt # #{count}: #{error}; retrying"
+        msg = "Error on attempt # #{count}: #{err}; retrying"
         count += 1
         warn Warning, msg if @warnings
 
@@ -102,30 +103,31 @@ class Attempt
   end
 end
 
+# Extend the Kernel module with a simple interface for the Attempt class.
 module Kernel
-   # :call-seq:
-   #    attempt(tries: 3, interval: 60, timeout: 10){ # some op }
-   #
-   # Attempt to perform the operation in the provided block up to +tries+
-   # times, sleeping +interval+ between each try. By default the number
-   # of tries defaults to 3, the interval defaults to 60 seconds, and there
-   # is no timeout specified.
-   #
-   # If +timeout+ is provided then the operation is wrapped in a Timeout
-   # block as well. This is handy for those rare occasions when an IO
-   # connection could hang indefinitely, for example.
-   #
-   # If the operation still fails the (last) error is then re-raised.
-   #
-   # This is really just a convenient wrapper for Attempt.new + Attempt#attempt.
-   #
-   # Example:
-   #
-   #    # Make 3 attempts to connect to the database, 60 seconds apart.
-   #    attempt{ DBI.connect(dsn, user, passwd) }
-   #
-   def attempt(**kwargs, &block)
-     object = Attempt.new(**kwargs)
-     object.attempt(&block)
-   end
+  # :call-seq:
+  #    attempt(tries: 3, interval: 60, timeout: 10){ # some op }
+  #
+  # Attempt to perform the operation in the provided block up to +tries+
+  # times, sleeping +interval+ between each try. By default the number
+  # of tries defaults to 3, the interval defaults to 60 seconds, and there
+  # is no timeout specified.
+  #
+  # If +timeout+ is provided then the operation is wrapped in a Timeout
+  # block as well. This is handy for those rare occasions when an IO
+  # connection could hang indefinitely, for example.
+  #
+  # If the operation still fails the (last) error is then re-raised.
+  #
+  # This is really just a convenient wrapper for Attempt.new + Attempt#attempt.
+  #
+  # Example:
+  #
+  #    # Make 3 attempts to connect to the database, 60 seconds apart.
+  #    attempt{ DBI.connect(dsn, user, passwd) }
+  #
+  def attempt(**kwargs, &block)
+    object = Attempt.new(**kwargs)
+    object.attempt(&block)
+  end
 end
