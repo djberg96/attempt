@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.cert_chain = Dir['certs/*']
   
   spec.metadata = {
-    'changelog_uri'   => 'https://github.com/djberg96/attempt/blob/main/CHANGES',
+    'changelog_uri'   => 'https://github.com/djberg96/attempt/blob/main/CHANGES.md',
     'source_code_uri' => 'https://github.com/djberg96/attempt/blob/main/lib/attempt.rb',
     'bug_tracker_uri' => 'https://github.com/djberg96/attempt/issues',
     'wiki_uri'        => 'https://github.com/djberg96/attempt/wiki'
