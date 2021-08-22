@@ -4,6 +4,9 @@ A thin wrapper for begin + rescue + sleep + retry.
 ## Installation
 `gem install attempt`
 
+## Adding the trusted cert
+`gem cert --add <(curl -Ls https://raw.githubusercontent.com/djberg96/attempt/main/certs/djberg96_pub.pem)`
+
 ## Synopsis
 ```ruby
 require 'attempt'
