@@ -1,3 +1,6 @@
+## 0.6.2 - 2-Jun-2022
+* The safe_timeout library is not used on MS Windows.
+
 ## 0.6.1 - 20-Oct-2020
 * Switched the README, MANIFEST and CHANGES to markdown format.
 * Fiddling with the .travis.yml file again.
