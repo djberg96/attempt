@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'safe_timeout'
+require 'safe_timeout' unless File::ALT_SEPARATOR
 require 'structured_warnings'
 
 # The Attempt class encapsulates methods related to multiple attempts at
 # running the same method before actually failing.
 class Attempt
   # The version of the attempt library.
-  VERSION = '0.6.1'
+  VERSION = '0.6.2'
 
   # Warning raised if an attempt fails before the maximum number of tries
   # has been reached.
@@ -52,7 +52,7 @@ class Attempt
   # * warnings  - Boolean value that indicates whether or not errors are treated as warnings
   #               until the maximum number of attempts has been made. The default is true.
   # * timeout   - Boolean value to indicate whether or not to automatically wrap your
-  #               proc in a SafeTimeout block. The default is false.
+  #               proc in a Timeout/SafeTimeout block. The default is false.
   #
   # Example:
   #
@@ -79,7 +79,7 @@ class Attempt
     count = 1
     begin
       if @timeout
-        SafeTimeout.timeout(@timeout, &block)
+        File::ALT_SEPARATOR ? Timeout.timeout(@timeout, &block) : SafeTimeout.timeout(@timeout, &block)
       else
         yield
       end
