@@ -47,9 +47,9 @@ As of version 0.3.0, this library requires structured_warnings 0.3.0 or
 later. This is necessary because of changes in Ruby 2.4.
 
 Update: I've switched from the timeout library in the standard library to
-the safe_timeout library which should improve things. In addition, the
-structured_warnings library requirement is now 0.4.0 or later in order to
-work with Ruby 2.7.
+the safe_timeout library on non-Windows platforms which should improve things.
+In addition, the structured_warnings library requirement is now 0.4.0 or later
+in order to work with Ruby 2.7.
 
 ## Future Plans
 Add the ability to set an absolute maximum number of seconds to prevent
@@ -69,7 +69,7 @@ warranties of merchantability and fitness for a particular purpose.
 Apache-2.0
 
 ## Copyright
-(C) 2006-2021, Daniel J. Berger
+(C) 2006-2022, Daniel J. Berger
 All Rights Reserved
 
 ## Author
