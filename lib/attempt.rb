@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
-require 'safe_timeout' unless File::ALT_SEPARATOR
+if File::ALT_SEPARATOR
+  require 'timeout'
+else
+  require 'safe_timeout'
+end
+
 require 'structured_warnings'
 
 # The Attempt class encapsulates methods related to multiple attempts at
