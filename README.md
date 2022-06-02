@@ -1,3 +1,5 @@
+[![Ruby](https://github.com/djberg96/attempt/actions/workflows/ruby.yml/badge.svg)](https://github.com/djberg96/attempt/actions/workflows/ruby.yml)
+
 ## Description
 A thin wrapper for begin + rescue + sleep + retry.
 
