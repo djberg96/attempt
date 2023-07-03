@@ -62,6 +62,10 @@ Replace the timeout library with a self selecting pipe if possible.
 ## Acknowledgements
 This library is partially based on Mark Fowler's 'Attempt' Perl module.
 
+## See Also
+If you're looking for a heavier but more robust solution designed for remote
+services, please take a look at gems like "circuitbox" or "faulty".
+
 ## Warranty
 This package is provided "as is" and without any express or
 implied warranties, including, without limitation, the implied
