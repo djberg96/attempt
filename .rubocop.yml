@@ -11,8 +11,11 @@ RSpec/InstanceVariable:
 
 AllCops:
   NewCops: enable
-Lint/AssignmentInCondition:
-  Enabled: false
+  Exclude:
+    - attempt.gemspec
+    - Rakefile
+    - Gemfile
+
 Style/MethodCallWithoutArgsParentheses:
   Enabled: false
 Style/NumericPredicate:
@@ -21,16 +24,20 @@ Style/ClassAndModuleChildren:
   Enabled: false
 Style/ConditionalAssignment:
   Enabled: false
+
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 Layout/CaseIndentation:
   IndentOneStep: true
 Layout/SpaceBeforeBlockBraces:
   Enabled: false
+
 Metrics/AbcSize:
   Enabled: false
 Metrics/BlockLength:
-  IgnoredMethods: ['describe', 'context']
+  AllowedMethods: ['describe', 'context']
+Metrics/BlockNesting:
+  Enabled: false
 Metrics/ClassLength:
   Enabled: false
 Metrics/MethodLength:
@@ -39,5 +46,6 @@ Metrics/CyclomaticComplexity:
   Enabled: false
 Metrics/PerceivedComplexity:
   Enabled: false
+
 Naming/RescuedExceptionsVariableName:
   PreferredName: 'err'
