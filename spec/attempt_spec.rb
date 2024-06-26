@@ -24,46 +24,46 @@ RSpec.describe Attempt do
     @value    = 0
   end
 
-  example "version constant is set to expected value" do
+  after do
+    @value = 0
+  end
+
+  after(:all) do
+    $stderr = STDERR
+  end
+
+  example 'version constant is set to expected value' do
     expect(Attempt::VERSION).to eq('0.6.2')
     expect(Attempt::VERSION).to be_frozen
   end
 
-  example "attempt works as expected without arguments" do
+  example 'attempt works as expected without arguments' do
     expect{ attempt{ 2 + 2 } }.not_to raise_error
   end
 
-  example "attempt retries the number of times specified" do
+  example 'attempt retries the number of times specified' do
     expect{ attempt(tries: @tries){ @value += 1; raise if @value < 2 } }.not_to raise_error
     expect(@value).to eq(2)
   end
 
-  example "attempt retries the number of times specified with interval" do
+  example 'attempt retries the number of times specified with interval' do
     expect{
       attempt(tries: @tries, interval: @interval){ @value += 1; raise if @value < 2 }
     }.not_to raise_error
     expect(@value).to eq(2)
   end
 
-  example "attempt retries the number of times specified with interval and timeout" do
+  example 'attempt retries the number of times specified with interval and timeout' do
     expect{
       attempt(tries: @tries, interval: @interval, timeout: @timeout){ @value += 1; raise if @value < 2 }
     }.not_to raise_error
   end
 
-  example "attempt raises a timeout error if timeout value is exceeded" do
+  example 'attempt raises a timeout error if timeout value is exceeded' do
     expect{ attempt(tries: 1, interval: 1, timeout: @timeout){ sleep 5 } }.to raise_error(Timeout::Error)
   end
 
-  example "attempt raises exception as expected" do
+  example 'attempt raises exception as expected' do
     expect{ attempt(tries: 2, interval: 2){ raise } }.to raise_error(RuntimeError)
-  end
-
-  after do
-    $after = 0
-  end
-
-  after(:all) do
-    $stderr = STDERR
   end
 end
