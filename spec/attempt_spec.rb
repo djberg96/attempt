@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #####################################################################
 # attempt_spec.rb
 #
@@ -19,7 +21,7 @@ RSpec.describe Attempt do
     @tries    = 2
     @interval = 0.1
     @timeout  = 0.1
-    $value    = 0
+    @value    = 0
   end
 
   example "version constant is set to expected value" do
@@ -32,20 +34,20 @@ RSpec.describe Attempt do
   end
 
   example "attempt retries the number of times specified" do
-    expect{ attempt(tries: @tries){ $value += 1; raise if $value < 2 } }.not_to raise_error
-    expect($value).to eq(2)
+    expect{ attempt(tries: @tries){ @value += 1; raise if @value < 2 } }.not_to raise_error
+    expect(@value).to eq(2)
   end
 
   example "attempt retries the number of times specified with interval" do
     expect{
-      attempt(tries: @tries, interval: @interval){ $value += 1; raise if $value < 2 }
+      attempt(tries: @tries, interval: @interval){ @value += 1; raise if @value < 2 }
     }.not_to raise_error
-    expect($value).to eq(2)
+    expect(@value).to eq(2)
   end
 
   example "attempt retries the number of times specified with interval and timeout" do
     expect{
-      attempt(tries: @tries, interval: @interval, timeout: @timeout){ $value += 1; raise if $value < 2 }
+      attempt(tries: @tries, interval: @interval, timeout: @timeout){ @value += 1; raise if @value < 2 }
     }.not_to raise_error
   end
 
