@@ -2,7 +2,7 @@ require 'rubygems'
 
 Gem::Specification.new do |spec|
   spec.name       = 'attempt'
-  spec.version    = '0.6.2'
+  spec.version    = '0.6.3'
   spec.author     = 'Daniel J. Berger'
   spec.license    = 'Apache-2.0'
   spec.email      = 'djberg96@gmail.com'
@@ -19,10 +19,13 @@ Gem::Specification.new do |spec|
     'source_code_uri'       => 'https://github.com/djberg96/attempt/blob/main/lib/attempt.rb',
     'bug_tracker_uri'       => 'https://github.com/djberg96/attempt/issues',
     'wiki_uri'              => 'https://github.com/djberg96/attempt/wiki',
-    'rubygems_mfa_required' => 'true'
+    'rubygems_mfa_required' => 'true',
+    'github_repo'           => 'https://github.com/djberg96/attempt'
   }
 
   spec.add_development_dependency('rake')
+  spec.add_development_dependency('rubocop')
+
   spec.add_dependency('structured_warnings', '~> 0.4.0')
   spec.add_dependency('safe_timeout', '~> 0.0.5')
   spec.add_dependency('rspec', '~> 3.9')

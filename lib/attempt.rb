@@ -12,7 +12,7 @@ require 'structured_warnings'
 # running the same method before actually failing.
 class Attempt
   # The version of the attempt library.
-  VERSION = '0.6.2'
+  VERSION = '0.6.3'
 
   # Warning raised if an attempt fails before the maximum number of tries
   # has been reached.

@@ -1,5 +1,7 @@
 require: rubocop-rspec
 
+RSpec/BeforeAfterAll:
+  Enabled: false
 RSpec/MultipleExpectations:
   Max: 4
 RSpec/ContextWording:
@@ -11,27 +13,29 @@ RSpec/InstanceVariable:
 
 AllCops:
   NewCops: enable
-Lint/AssignmentInCondition:
-  Enabled: false
-Style/MethodCallWithoutArgsParentheses:
+  SuggestExtensions: false
+  Exclude:
+    - attempt.gemspec
+    - Rakefile
+    - Gemfile
+
+Style/BlockDelimiters:
   Enabled: false
 Style/NumericPredicate:
   Enabled: false
-Style/ClassAndModuleChildren:
+Style/Semicolon:
   Enabled: false
-Style/ConditionalAssignment:
-  Enabled: false
+
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 Layout/CaseIndentation:
   IndentOneStep: true
 Layout/SpaceBeforeBlockBraces:
   Enabled: false
-Metrics/AbcSize:
-  Enabled: false
+
 Metrics/BlockLength:
-  IgnoredMethods: ['describe', 'context']
-Metrics/ClassLength:
+  AllowedMethods: ['describe', 'context']
+Metrics/BlockNesting:
   Enabled: false
 Metrics/MethodLength:
   Enabled: false
@@ -39,5 +43,6 @@ Metrics/CyclomaticComplexity:
   Enabled: false
 Metrics/PerceivedComplexity:
   Enabled: false
+
 Naming/RescuedExceptionsVariableName:
   PreferredName: 'err'
