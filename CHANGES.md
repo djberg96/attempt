@@ -1,3 +1,6 @@
+## 0.6.3 - 26-Jun-2024
+* Rubocop cleanup.
+
 ## 0.6.2 - 2-Jun-2022
 * The safe_timeout library is not used on MS Windows.
 
