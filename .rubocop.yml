@@ -13,18 +13,17 @@ RSpec/InstanceVariable:
 
 AllCops:
   NewCops: enable
+  SuggestExtensions: false
   Exclude:
     - attempt.gemspec
     - Rakefile
     - Gemfile
 
-Style/MethodCallWithoutArgsParentheses:
+Style/BlockDelimiters:
   Enabled: false
 Style/NumericPredicate:
   Enabled: false
-Style/ClassAndModuleChildren:
-  Enabled: false
-Style/ConditionalAssignment:
+Style/Semicolon:
   Enabled: false
 
 Layout/EmptyLineAfterGuardClause:
@@ -34,13 +33,9 @@ Layout/CaseIndentation:
 Layout/SpaceBeforeBlockBraces:
   Enabled: false
 
-Metrics/AbcSize:
-  Enabled: false
 Metrics/BlockLength:
   AllowedMethods: ['describe', 'context']
 Metrics/BlockNesting:
-  Enabled: false
-Metrics/ClassLength:
   Enabled: false
 Metrics/MethodLength:
   Enabled: false
