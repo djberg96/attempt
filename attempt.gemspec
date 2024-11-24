@@ -20,7 +20,8 @@ Gem::Specification.new do |spec|
     'bug_tracker_uri'       => 'https://github.com/djberg96/attempt/issues',
     'wiki_uri'              => 'https://github.com/djberg96/attempt/wiki',
     'rubygems_mfa_required' => 'true',
-    'github_repo'           => 'https://github.com/djberg96/attempt'
+    'github_repo'           => 'https://github.com/djberg96/attempt',
+    'funding_uri'           => 'https://github.com/sponsors/djberg96'
   }
 
   spec.add_development_dependency('rake')
