@@ -1,18 +1,13 @@
 # frozen_string_literal: true
 
-if File::ALT_SEPARATOR
-  require 'timeout'
-else
-  require 'safe_timeout'
-end
-
+require 'ruby_timeout_safe'
 require 'structured_warnings'
 
 # The Attempt class encapsulates methods related to multiple attempts at
 # running the same method before actually failing.
 class Attempt
   # The version of the attempt library.
-  VERSION = '0.6.3'
+  VERSION = '0.7.0'
 
   # Warning raised if an attempt fails before the maximum number of tries
   # has been reached.
@@ -84,7 +79,7 @@ class Attempt
     count = 1
     begin
       if @timeout
-        File::ALT_SEPARATOR ? Timeout.timeout(@timeout, &block) : SafeTimeout.timeout(@timeout, &block)
+        RubyTimeoutSafe.timeout(@timeout, &block)
       else
         yield
       end

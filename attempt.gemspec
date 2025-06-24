@@ -2,7 +2,7 @@ require 'rubygems'
 
 Gem::Specification.new do |spec|
   spec.name       = 'attempt'
-  spec.version    = '0.6.3'
+  spec.version    = '0.7.0'
   spec.author     = 'Daniel J. Berger'
   spec.license    = 'Apache-2.0'
   spec.email      = 'djberg96@gmail.com'
@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency('rubocop')
 
   spec.add_dependency('structured_warnings', '~> 0.4.0')
-  spec.add_dependency('safe_timeout', '~> 0.0.5')
+  spec.add_dependency('ruby_timeout_safe', '~> 1.0.1')
   spec.add_dependency('rspec', '~> 3.9')
 
   spec.description = <<-EOF
