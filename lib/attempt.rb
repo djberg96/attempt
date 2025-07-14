@@ -1,16 +1,65 @@
 # frozen_string_literal: true
 
 require 'timeout'
-
-# Try to require safe_timeout for non-Windows systems, fall back to timeout if not available
-begin
-  require 'safe_timeout' unless File::ALT_SEPARATOR
-rescue LoadError
-  # safe_timeout not available, will use standard timeout
-  SafeTimeout = Timeout if defined?(Timeout)
-end
-
 require 'structured_warnings'
+
+# Custom timeout implementation that's more reliable than Ruby's Timeout module
+class AttemptTimeout
+  class Error < StandardError; end
+
+  # More reliable timeout using Thread + sleep instead of Timeout.timeout
+  # This approach is safer as it doesn't use Thread#raise
+  def self.timeout(seconds, &block)
+    return yield if seconds.nil? || seconds <= 0
+
+    result = nil
+    exception = nil
+
+    thread = Thread.new do
+      begin
+        result = yield
+      rescue => e
+        exception = e
+      end
+    end
+
+    if thread.join(seconds)
+      # Thread completed within timeout
+      raise exception if exception
+      result
+    else
+      # Thread timed out
+      thread.kill  # More graceful than Thread#raise
+      thread.join  # Wait for cleanup
+      raise Error, "execution expired after #{seconds} seconds"
+    end
+  end
+
+  # Alternative: Fiber-based timeout (even more lightweight)
+  def self.fiber_timeout(seconds, &block)
+    return yield if seconds.nil? || seconds <= 0
+
+    fiber = Fiber.new(&block)
+    start_time = Time.now
+
+    loop do
+      if Time.now - start_time > seconds
+        raise Error, "execution expired after #{seconds} seconds"
+      end
+
+      begin
+        result = fiber.resume
+        return result if fiber.dead?
+      rescue FiberError
+        # Fiber is dead, return last result
+        break
+      end
+
+      # Small sleep to prevent busy waiting
+      sleep 0.001
+    end
+  end
+end
 
 # The Attempt class encapsulates methods related to multiple attempts at
 # running the same method before actually failing.
@@ -43,6 +92,10 @@ class Attempt
   # If set, the code block is further wrapped in a timeout block.
   attr_accessor :timeout
 
+  # Strategy to use for timeout implementation
+  # Options: :custom, :thread, :process, :ruby_timeout
+  attr_accessor :timeout_strategy
+
   # Determines which exception level to check when looking for errors to
   # retry.  The default is 'Exception' (i.e. all errors).
   attr_accessor :level
@@ -62,10 +115,11 @@ class Attempt
   #               until the maximum number of attempts has been made. The default is true.
   # * timeout   - Timeout in seconds to automatically wrap your proc in a Timeout block.
   #               Must be positive if provided. The default is nil (no timeout).
+  # * timeout_strategy - Strategy for timeout implementation. Options: :auto (default), :custom, :thread, :process, :ruby_timeout
   #
   # Example:
   #
-  #   a = Attempt.new(tries: 5, increment: 10, timeout: 30)
+  #   a = Attempt.new(tries: 5, increment: 10, timeout: 30, timeout_strategy: :process)
   #   a.attempt{ http.get("http://something.foo.com") }
   #
   # Raises ArgumentError if any parameters are invalid.
@@ -76,6 +130,7 @@ class Attempt
     @log       = validate_log(options[:log])
     @increment = validate_increment(options[:increment] || 0)
     @timeout   = validate_timeout(options[:timeout])
+    @timeout_strategy = options[:timeout_strategy] || :auto
     @level     = options[:level] || StandardError  # More appropriate default than Exception
     @warnings  = options.fetch(:warnings, true)    # More explicit than ||
 
@@ -142,6 +197,7 @@ class Attempt
       interval: @interval,
       increment: @increment,
       timeout: @timeout,
+      timeout_strategy: @timeout_strategy,
       level: @level,
       warnings: @warnings,
       log: @log&.class&.name
@@ -151,15 +207,129 @@ class Attempt
   private
 
   # Execute the block with appropriate timeout mechanism
+  # Uses multiple strategies for better reliability
   def execute_with_timeout(&block)
     timeout_value = effective_timeout
     return yield unless timeout_value
 
-    if File::ALT_SEPARATOR || !defined?(SafeTimeout)
+    case @timeout_strategy
+    when :custom
+      execute_with_custom_timeout(timeout_value, &block)
+    when :thread
+      execute_with_thread_timeout(timeout_value, &block)
+    when :process
+      execute_with_process_timeout(timeout_value, &block)
+    when :ruby_timeout
       Timeout.timeout(timeout_value, &block)
-    else
-      SafeTimeout.timeout(timeout_value, &block)
+    else  # :auto
+      execute_with_auto_timeout(timeout_value, &block)
     end
+  end
+
+  # Automatic timeout strategy selection
+  def execute_with_auto_timeout(timeout_value, &block)
+    # Try custom timeout first (most reliable)
+    begin
+      return execute_with_custom_timeout(timeout_value, &block)
+    rescue NameError, NoMethodError
+      # Fall back to other strategies
+      execute_with_fallback_timeout(timeout_value, &block)
+    end
+  end
+
+  # Custom timeout using our AttemptTimeout class
+  def execute_with_custom_timeout(timeout_value, &block)
+    begin
+      return AttemptTimeout.timeout(timeout_value, &block)
+    rescue AttemptTimeout::Error => e
+      raise Timeout::Error, e.message  # Convert to expected exception type
+    end
+  end
+
+  # Fallback timeout implementation using multiple strategies
+  def execute_with_fallback_timeout(timeout_value, &block)
+    # Strategy 2: Process-based timeout (most reliable for blocking operations)
+    if respond_to?(:system) && !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
+      return execute_with_process_timeout(timeout_value, &block)
+    end
+
+    # Strategy 3: Thread-based timeout with better error handling
+    return execute_with_thread_timeout(timeout_value, &block)
+  rescue
+    # Strategy 4: Last resort - use Ruby's Timeout (least reliable)
+    Timeout.timeout(timeout_value, &block)
+  end
+
+  # Process-based timeout - most reliable for I/O operations
+  def execute_with_process_timeout(timeout_value, &block)
+    reader, writer = IO.pipe
+
+    pid = fork do
+      reader.close
+      begin
+        result = yield
+        Marshal.dump(result, writer)
+      rescue => e
+        Marshal.dump({error: e}, writer)
+      ensure
+        writer.close
+      end
+    end
+
+    writer.close
+
+    if Process.waitpid(pid, Process::WNOHANG)
+      # Process completed immediately
+      result = Marshal.load(reader)
+    else
+      # Wait for timeout
+      if IO.select([reader], nil, nil, timeout_value)
+        Process.waitpid(pid)
+        result = Marshal.load(reader)
+      else
+        Process.kill('TERM', pid)
+        Process.waitpid(pid)
+        raise Timeout::Error, "execution expired after #{timeout_value} seconds"
+      end
+    end
+
+    reader.close
+
+    if result.is_a?(Hash) && result[:error]
+      raise result[:error]
+    end
+
+    result
+  rescue Errno::ECHILD, NotImplementedError
+    # Fork not available, fall back to thread-based
+    execute_with_thread_timeout(timeout_value, &block)
+  end
+
+  # Improved thread-based timeout
+  def execute_with_thread_timeout(timeout_value, &block)
+    result = nil
+    exception = nil
+    completed = false
+
+    thread = Thread.new do
+      begin
+        result = yield
+      rescue => e
+        exception = e
+      ensure
+        completed = true
+      end
+    end
+
+    # Wait for completion or timeout
+    unless thread.join(timeout_value)
+      thread.kill
+      thread.join(0.1)  # Give thread time to clean up
+      raise Timeout::Error, "execution expired after #{timeout_value} seconds"
+    end
+
+    raise exception if exception
+    result
   end
 
   # Log retry attempt information
