@@ -1,3 +1,14 @@
+## 0.7.0 - 14-Jul-2025
+* Refactored to include more argument validations, more explicit error
+  messages, and better thread safety.
+* Add the configuratoin, timeout_enabled? and effective_timeout methods.
+* Removed the safe_timeout dependency.
+* When using the timeout option there is now a "thread_strategies" option
+  that affects how it behaves exactly. This option takes "auto", "custom",
+  "thread", "process", "fiber" and "ruby_timeout" as possible options.
+* See the markdown files under the "doc" directory and/or the example
+  code in the "examples" directory for more details.
+
 ## 0.6.3 - 26-Jun-2024
 * Rubocop cleanup.
 
