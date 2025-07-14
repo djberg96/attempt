@@ -5,7 +5,7 @@
 * Removed the safe_timeout dependency.
 * When using the timeout option there is now a "thread_strategies" option
   that affects how it behaves exactly. This option takes "auto", "custom",
-  "thread", "process", and "ruby_timeout" as possible options.
+  "thread", "process", "fiber" and "ruby_timeout" as possible options.
 * See the markdown files under the "doc" directory and/or the example
   code in the "examples" directory for more details.
 
