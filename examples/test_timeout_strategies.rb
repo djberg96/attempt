@@ -19,7 +19,7 @@ def io_operation(duration)
   "IO completed after #{duration}s"
 end
 
-strategies = [:auto, :custom, :thread, :process, :ruby_timeout]
+strategies = [:auto, :custom, :thread, :process, :fiber, :ruby_timeout]
 
 strategies.each do |strategy|
   puts "\n--- Testing #{strategy.to_s.upcase} strategy ---"

@@ -35,29 +35,81 @@ class AttemptTimeout
     end
   end
 
-  # Alternative: Fiber-based timeout (even more lightweight)
+  # Alternative: Fiber-based timeout (lightweight, cooperative)
+  # Note: This only works for code that yields control back to the main thread
   def self.fiber_timeout(seconds, &block)
     return yield if seconds.nil? || seconds <= 0
 
+    # For blocks that don't naturally yield, we need a different approach
+    # We'll use a hybrid fiber + thread approach for better compatibility
+    if fiber_compatible_block?(&block)
+      fiber_only_timeout(seconds, &block)
+    else
+      fiber_thread_hybrid_timeout(seconds, &block)
+    end
+  end
+
+  # Pure fiber-based timeout for cooperative code
+  def self.fiber_only_timeout(seconds, &block)
     fiber = Fiber.new(&block)
     start_time = Time.now
 
     loop do
-      if Time.now - start_time > seconds
+      elapsed = Time.now - start_time
+      if elapsed > seconds
         raise Error, "execution expired after #{seconds} seconds"
       end
 
       begin
         result = fiber.resume
-        return result if fiber.dead?
+        return result unless fiber.alive?
       rescue FiberError
-        # Fiber is dead, return last result
+        # Fiber is dead, which means it completed
         break
       end
 
-      # Small sleep to prevent busy waiting
+      # Small sleep to prevent busy waiting and allow other operations
       sleep 0.001
     end
+  end
+
+  # Hybrid approach: fiber in a thread with timeout
+  def self.fiber_thread_hybrid_timeout(seconds, &block)
+    result = nil
+    exception = nil
+
+    thread = Thread.new do
+      fiber = Fiber.new do
+        begin
+          result = yield
+        rescue => e
+          exception = e
+        end
+      end
+
+      # Resume the fiber until completion
+      while fiber.alive?
+        fiber.resume
+        Thread.pass  # Allow other threads to run
+      end
+    end
+
+    if thread.join(seconds)
+      raise exception if exception
+      result
+    else
+      thread.kill
+      thread.join(0.1)
+      raise Error, "execution expired after #{seconds} seconds"
+    end
+  end
+
+  # Simple heuristic to determine if a block is likely to be fiber-compatible
+  # (This is a basic implementation - in practice, this is hard to determine)
+  def self.fiber_compatible_block?(&block)
+    # For now, assume most blocks are not naturally fiber-cooperative
+    # In practice, you'd want more sophisticated detection
+    false
   end
 end
 
@@ -93,7 +145,7 @@ class Attempt
   attr_accessor :timeout
 
   # Strategy to use for timeout implementation
-  # Options: :custom, :thread, :process, :ruby_timeout
+  # Options: :auto, :custom, :thread, :process, :fiber, :ruby_timeout
   attr_accessor :timeout_strategy
 
   # Determines which exception level to check when looking for errors to
@@ -115,7 +167,7 @@ class Attempt
   #               until the maximum number of attempts has been made. The default is true.
   # * timeout   - Timeout in seconds to automatically wrap your proc in a Timeout block.
   #               Must be positive if provided. The default is nil (no timeout).
-  # * timeout_strategy - Strategy for timeout implementation. Options: :auto (default), :custom, :thread, :process, :ruby_timeout
+  # * timeout_strategy - Strategy for timeout implementation. Options: :auto (default), :custom, :thread, :process, :fiber, :ruby_timeout
   #
   # Example:
   #
@@ -219,6 +271,8 @@ class Attempt
       execute_with_thread_timeout(timeout_value, &block)
     when :process
       execute_with_process_timeout(timeout_value, &block)
+    when :fiber
+      execute_with_fiber_timeout(timeout_value, &block)
     when :ruby_timeout
       Timeout.timeout(timeout_value, &block)
     else  # :auto
@@ -249,14 +303,21 @@ class Attempt
   # Fallback timeout implementation using multiple strategies
   def execute_with_fallback_timeout(timeout_value, &block)
     # Strategy 2: Process-based timeout (most reliable for blocking operations)
-    if respond_to?(:system) && !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
+    if respond_to?(:system) && (!defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby')
       return execute_with_process_timeout(timeout_value, &block)
     end
 
-    # Strategy 3: Thread-based timeout with better error handling
+    # Strategy 3: Fiber-based timeout (lightweight alternative)
+    begin
+      return execute_with_fiber_timeout(timeout_value, &block)
+    rescue NameError, NoMethodError
+      # Fiber support may not be available in all Ruby versions
+    end
+
+    # Strategy 4: Thread-based timeout with better error handling
     return execute_with_thread_timeout(timeout_value, &block)
   rescue
-    # Strategy 4: Last resort - use Ruby's Timeout (least reliable)
+    # Strategy 5: Last resort - use Ruby's Timeout (least reliable)
     Timeout.timeout(timeout_value, &block)
   end
 
@@ -330,6 +391,15 @@ class Attempt
 
     raise exception if exception
     result
+  end
+
+  # Fiber-based timeout - lightweight alternative
+  def execute_with_fiber_timeout(timeout_value, &block)
+    begin
+      return AttemptTimeout.fiber_timeout(timeout_value, &block)
+    rescue AttemptTimeout::Error => e
+      raise Timeout::Error, e.message  # Convert to expected exception type
+    end
   end
 
   # Log retry attempt information

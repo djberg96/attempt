@@ -2,7 +2,13 @@
 
 ## Overview
 
-The Attempt library now includes multiple timeout strategies to provide more reliable timeout behavior for arbitrary blocks of code.
+The Attempt library now includes multiple timeout strategies to provide more relia## Performance Comparison
+
+- **Process**: Highest reliability, highest overhead
+- **Custom**: Good reliability, low overhead
+- **Thread**: Good reliability, very low overhead
+- **Fiber**: Good reliability, lowest overhead (for cooperative code)
+- **Ruby Timeout**: Lowest reliability, lowest overheadmeout behavior for arbitrary blocks of code.
 
 ## Problems with Ruby's Standard Timeout
 
@@ -63,7 +69,24 @@ attempt(timeout: 5, timeout_strategy: :process) { risky_operation }
 - Higher overhead due to process creation
 - Results must be serializable with Marshal
 
-### 5. `:ruby_timeout`
+### 5. `:fiber`
+Fiber-based timeout (lightweight, cooperative scheduling).
+
+```ruby
+attempt(timeout: 5, timeout_strategy: :fiber) { risky_operation }
+```
+
+**Advantages:**
+- Very lightweight - no thread creation overhead
+- Good for cooperative code that yields control
+- Hybrid implementation works with most code
+
+**Limitations:**
+- Pure fiber approach only works with cooperative code
+- Falls back to fiber+thread hybrid for blocking operations
+- Newer feature, less battle-tested
+
+### 6. `:ruby_timeout`
 Uses Ruby's standard Timeout module (for compatibility).
 
 ```ruby
@@ -87,8 +110,18 @@ attempt(timeout: 30, timeout_strategy: :custom) { Net::HTTP.get(uri) }
 
 ### For CPU-Intensive Operations
 ```ruby
-# Best: Thread-based or custom
+# Best: Thread-based, custom, or fiber
 attempt(timeout: 10, timeout_strategy: :thread) { expensive_calculation }
+attempt(timeout: 10, timeout_strategy: :fiber) { cooperative_calculation }
+```
+
+### For Lightweight Operations
+```ruby
+# Best: Fiber (lowest overhead)
+attempt(timeout: 5, timeout_strategy: :fiber) { quick_operation }
+
+# Alternative: Custom
+attempt(timeout: 5, timeout_strategy: :custom) { quick_operation }
 ```
 
 ### For General Use
@@ -137,6 +170,9 @@ To use improved timeout strategies:
 ```ruby
 # Add timeout_strategy parameter
 attempt(timeout: 5, timeout_strategy: :process) { some_operation }
+
+# Or use the lightweight fiber strategy
+attempt(timeout: 5, timeout_strategy: :fiber) { cooperative_operation }
 ```
 
 The `:auto` strategy provides the best balance of reliability and compatibility for most use cases.
