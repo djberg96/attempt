@@ -75,7 +75,7 @@ warranties of merchantability and fitness for a particular purpose.
 Apache-2.0
 
 ## Copyright
-(C) 2006-2022, Daniel J. Berger
+(C) 2006-2025, Daniel J. Berger
 All Rights Reserved
 
 ## Author

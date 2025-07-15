@@ -1,3 +1,7 @@
+## 0.8.0 - 15-Jul-2025
+* If using the "timeout" option with "auto", it now performs some static
+  analysis to determine what the best timeout strategy is.
+
 ## 0.7.0 - 14-Jul-2025
 * Refactored to include more argument validations, more explicit error
   messages, and better thread safety.
