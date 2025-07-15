@@ -107,9 +107,116 @@ class AttemptTimeout
   # Simple heuristic to determine if a block is likely to be fiber-compatible
   # (This is a basic implementation - in practice, this is hard to determine)
   def self.fiber_compatible_block?(&block)
-    # For now, assume most blocks are not naturally fiber-cooperative
-    # In practice, you'd want more sophisticated detection
+    # Try multiple detection strategies
+    detect_by_execution_pattern(&block) ||
+    detect_by_source_analysis(&block) ||
+    detect_by_timing_analysis(&block)
+  end
+
+  # Method 1: Execute in a test fiber and see if it yields naturally
+  def self.detect_by_execution_pattern(&block)
+    return false unless block_given?
+
+    test_fiber = Fiber.new(&block)
+    start_time = Time.now
+    yields_detected = 0
+
+    # Try to resume the fiber multiple times with short intervals
+    3.times do
+      break unless test_fiber.alive?
+
+      begin
+        test_fiber.resume
+        yields_detected += 1 if (Time.now - start_time) < 0.01  # Quick yield
+      rescue FiberError, StandardError
+        break
+      end
+    end
+
+    yields_detected > 1  # Multiple quick yields suggest cooperative behavior
+  rescue
+    false  # If anything goes wrong, assume non-cooperative
+  end
+
+  # Method 2: Analyze the block's source code for yield indicators
+  def self.detect_by_source_analysis(&block)
+    return false unless block_given?
+
+    source = extract_block_source(&block)
+    return false unless source
+
+    # Look for patterns that suggest yielding behavior
+    yielding_patterns = [
+      /\bFiber\.yield\b/,             # Explicit fiber yields
+      /\bEM\.|EventMachine/,          # EventMachine operations
+      /\bAsync\b/,                    # Async gem operations
+      /\.async\b/,                    # Async method calls
+      /\bawait\b/,                    # Await-style calls
+      /\bIO\.select\b/,               # IO operations
+      /\bsocket\./i,                  # Socket operations
+    ]
+
+    blocking_patterns = [
+      /\bsleep\b/,                    # sleep() calls - actually blocking in fiber context!
+      /\bNet::HTTP\b/,                # HTTP operations - can block
+      /\bwhile\s+true\b/,             # Infinite loops
+      /\bloop\s+do\b/,                # Loop blocks
+      /\d+\.times\s+do\b/,            # Numeric iteration
+      /\bArray\.new\(/,               # Large array creation
+    ]
+
+    has_yielding = yielding_patterns.any? { |pattern| source =~ pattern }
+    has_blocking = blocking_patterns.any? { |pattern| source =~ pattern }
+
+    has_yielding && !has_blocking
+  rescue
     false
+  end
+
+  # Method 3: Time-based analysis - quick execution suggests yielding
+  def self.detect_by_timing_analysis(&block)
+    return false unless block_given?
+
+    # Test execution in a thread with very short timeout
+    start_time = Time.now
+    completed = false
+
+    test_thread = Thread.new do
+      begin
+        yield
+        completed = true
+      rescue
+        # Ignore errors for detection purposes
+      end
+    end
+
+    # If it completes very quickly or yields within 10ms, likely cooperative
+    test_thread.join(0.01)
+    execution_time = Time.now - start_time
+
+    test_thread.kill unless test_thread.status.nil?
+    test_thread.join(0.01)
+
+    # Quick completion suggests either very fast operation or yielding behavior
+    completed && execution_time < 0.005
+  rescue
+    false
+  end
+
+  private
+
+  # Extract source code from a block (Ruby 2.7+ method)
+  def self.extract_block_source(&block)
+    return nil unless block.respond_to?(:source_location)
+
+    file, line = block.source_location
+    return nil unless file && line && File.exist?(file)
+
+    lines = File.readlines(file)
+    # Simple extraction - in practice, you'd want more sophisticated parsing
+    lines[line - 1..line + 5].join
+  rescue
+    nil
   end
 end
 
@@ -282,13 +389,22 @@ class Attempt
 
   # Automatic timeout strategy selection
   def execute_with_auto_timeout(timeout_value, &block)
-    # Try custom timeout first (most reliable)
-    begin
-      return execute_with_custom_timeout(timeout_value, &block)
-    rescue NameError, NoMethodError
-      # Fall back to other strategies
-      execute_with_fallback_timeout(timeout_value, &block)
+    # Detect the optimal strategy based on the block
+    strategy = detect_optimal_strategy(&block)
+
+    case strategy
+    when :fiber
+      execute_with_fiber_timeout(timeout_value, &block)
+    when :thread
+      execute_with_thread_timeout(timeout_value, &block)
+    when :process
+      execute_with_process_timeout(timeout_value, &block)
+    else
+      execute_with_custom_timeout(timeout_value, &block)
     end
+  rescue NameError, NoMethodError
+    # Fall back to other strategies if preferred strategy fails
+    execute_with_fallback_timeout(timeout_value, &block)
   end
 
   # Custom timeout using our AttemptTimeout class
@@ -473,6 +589,51 @@ class Attempt
   def freeze_configuration
     instance_variables.each { |var| instance_variable_get(var).freeze }
     freeze
+  end
+
+  # Detect the optimal timeout strategy based on block characteristics
+  def detect_optimal_strategy(&block)
+    # Quick heuristics for strategy selection
+    source = extract_block_source(&block) if block.source_location
+
+    if source
+      # I/O operations - process strategy is most reliable
+      return :process if source =~ /Net::HTTP|Socket|File\.|IO\.|system|`|Process\./
+
+      # Sleep operations - thread strategy is better than fiber for blocking sleep
+      return :thread if source =~ /\bsleep\b/
+
+      # Event-driven code - fiber strategy works well
+      return :fiber if source =~ /EM\.|EventMachine|Async|\.async|Fiber\.yield/
+
+      # CPU-intensive - thread strategy
+      return :thread if source =~ /\d+\.times|while|loop|Array\.new\(\d+\)/
+    end
+
+    # Use fiber detection if available (but be conservative)
+    if AttemptTimeout.respond_to?(:fiber_compatible_block?) &&
+       AttemptTimeout.fiber_compatible_block?(&block)
+      return :fiber
+    end
+
+    # Default: custom timeout (safest general-purpose option)
+    :custom
+  end
+
+  # Extract source code from a block for analysis
+  def extract_block_source(&block)
+    return nil unless block.respond_to?(:source_location)
+
+    file, line = block.source_location
+    return nil unless file && line && File.exist?(file)
+
+    lines = File.readlines(file)
+    # Simple extraction - get a few lines around the block
+    start_line = [line - 1, 0].max
+    end_line = [line + 3, lines.length - 1].min
+    lines[start_line..end_line].join
+  rescue
+    nil
   end
 end
 
