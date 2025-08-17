@@ -5,7 +5,7 @@
 ## 0.7.0 - 14-Jul-2025
 * Refactored to include more argument validations, more explicit error
   messages, and better thread safety.
-* Add the configuratoin, timeout_enabled? and effective_timeout methods.
+* Add the configuration, timeout_enabled? and effective_timeout methods.
 * Removed the safe_timeout dependency.
 * When using the timeout option there is now a "thread_strategies" option
   that affects how it behaves exactly. This option takes "auto", "custom",
