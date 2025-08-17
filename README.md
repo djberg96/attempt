@@ -42,22 +42,22 @@ wrapping code that already performs sleep + retry. Otherwise, you'll
 end up with a series of nested retry's that could take much longer to
 work than you expect. 
 
-Also, this library uses the timeout library internally, which has some
-known issues. See Future Plans, below.
-
 As of version 0.3.0, this library requires structured_warnings 0.3.0 or
 later. This is necessary because of changes in Ruby 2.4.
 
-Update: I've switched from the timeout library in the standard library to
-the safe_timeout library on non-Windows platforms which should improve things.
 In addition, the structured_warnings library requirement is now 0.4.0 or later
-in order to work with Ruby 2.7.
+in order to work with Ruby 2.7+.
+
+Originally this library used the timeout library and later the safe_timeout
+library internally. However, as of 0.7.0 I've completely revamped the timeout
+handling to allow for different (and better) timeout strategies. Please see
+the documentation for details.
 
 ## Future Plans
 Add the ability to set an absolute maximum number of seconds to prevent
 nested sleep/retry from delaying attempts longer than expected.
 
-Replace the timeout library with a self selecting pipe if possible.
+Add a self selecting pipe timeout option if possible.
 
 ## Acknowledgements
 This library is partially based on Mark Fowler's 'Attempt' Perl module.
