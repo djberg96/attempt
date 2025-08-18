@@ -541,35 +541,56 @@ class Attempt
         begin
           result = yield
 
-          # Send result via data pipe
+          # Signal completion first (small, non-blocking), then send result
           begin
+            # Signal completion with a single-byte code ('D') then flush
+            signal_writer.write('D')
+            signal_writer.flush
+
+            # Now marshal the (possibly large) result into the data pipe
             Marshal.dump(result, data_writer)
             data_writer.close
 
-            # Signal completion
-            signal_writer.write('done')
             signal_writer.close
             exit(0)
           rescue => marshal_error
-            # If marshaling fails, signal error
+            # If marshaling fails, signal error and exit
             data_writer.close rescue nil
-            signal_writer.write('marshal_error')
+            begin
+              # Signal marshal error with single-byte code ('M')
+              signal_writer.write('M')
+              signal_writer.flush
+            rescue
+              # ignore
+            end
             signal_writer.close rescue nil
             exit(1)
           end
 
         rescue => e
-          # Send error via data pipe
+          # Signal error first, then attempt to send marshaled error
           begin
-            Marshal.dump({error: e}, data_writer)
-            data_writer.close
-            signal_writer.write('error')
+            # Signal runtime error with single-byte code ('E')
+            signal_writer.write('E')
+            signal_writer.flush
+            begin
+              Marshal.dump({error: e}, data_writer)
+              data_writer.close
+            rescue
+              data_writer.close rescue nil
+            end
             signal_writer.close
             exit(1)
           rescue
-            # If even error marshaling fails
+            # If even error marshaling/signaling fails
             data_writer.close rescue nil
-            signal_writer.write('fatal_error')
+            begin
+              # Signal fatal error when even marshaling the error fails ('F')
+              signal_writer.write('F')
+              signal_writer.flush
+            rescue
+              # ignore
+            end
             signal_writer.close rescue nil
             exit(2)
           end
@@ -588,17 +609,17 @@ class Attempt
 
       if ready
         # Process completed within timeout
-        signal = signal_reader.read(20)  # Read signal
+        signal = signal_reader.read(1)  # Read single-byte signal
         Process.waitpid(pid)
         pid = nil
 
         case signal
-        when 'done'
+        when 'D'
           # Success - read the result
           result = Marshal.load(data_reader)
           return result
 
-        when 'error'
+        when 'E'
           # Exception occurred - read and re-raise it
           error_data = Marshal.load(data_reader)
 
@@ -608,11 +629,13 @@ class Attempt
             raise StandardError, "Unknown error in subprocess"
           end
 
-        when 'marshal_error'
+        when 'M'
           raise StandardError, "Result could not be marshaled"
 
-        else
+        when 'F'
           raise StandardError, "Fatal error in subprocess"
+        else
+          raise StandardError, "Unknown signal from subprocess: #{signal.inspect}"
         end
 
       else
