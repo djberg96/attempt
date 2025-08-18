@@ -22,7 +22,7 @@ end
 # Test 2: Operation that times out
 puts "\nTest 2: Slow operation (should timeout)"
 begin
-  result = attempt(timeout: 2, timeout_strategy: :self_pipe) do
+  result = attempt(tries: 1, timeout: 2, timeout_strategy: :self_pipe) do
     puts "  Starting slow operation..."
     sleep(5)  # This will timeout
     "This shouldn't be reached"
@@ -54,7 +54,7 @@ end
 # Test 4: Operation that raises an exception
 puts "\nTest 4: Operation that raises exception"
 begin
-  result = attempt(timeout: 3, timeout_strategy: :self_pipe) do
+  result = attempt(tries: 1, timeout: 3, timeout_strategy: :self_pipe) do
     puts "  About to raise an exception..."
     sleep(0.5)
     raise StandardError, "Test exception from within block"
