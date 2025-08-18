@@ -12,20 +12,20 @@ A thin wrapper for begin + rescue + sleep + retry.
 ## Synopsis
 ```ruby
 require 'attempt'
- 
+
 # Attempt to ftp to some host, trying 3 times with 30 seconds between
 # attempts before finally raising an error.
 
 attempt(tries: 3, interval: 30){
   Net::FTP.open(host, user, passwd){ ... }
 }
- 
+
 # Or, do things the long way...
 code = Attempt.new do |a|
   a.tries    = 3
   a.interval = 30
 end
- 
+
 code.attempt{
   Net::FTP.open(host, user, passwd){ ... }
 }
@@ -40,7 +40,7 @@ https://github.com/djberg96/attempt
 Use with caution. Specifically, make sure you aren't inadvertantly
 wrapping code that already performs sleep + retry. Otherwise, you'll
 end up with a series of nested retry's that could take much longer to
-work than you expect. 
+work than you expect.
 
 As of version 0.3.0, this library requires structured_warnings 0.3.0 or
 later. This is necessary because of changes in Ruby 2.4.
@@ -57,7 +57,7 @@ the documentation for details.
 Add the ability to set an absolute maximum number of seconds to prevent
 nested sleep/retry from delaying attempts longer than expected.
 
-Add a self selecting pipe timeout option if possible.
+~~Add a self selecting pipe timeout option if possible.~~ ✅ Completed in v0.8.0
 
 ## Acknowledgements
 This library is partially based on Mark Fowler's 'Attempt' Perl module.

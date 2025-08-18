@@ -1,14 +1,17 @@
-# Improved Timeout Strategies in Attempt Library
+# ## Overview
+
+The Attempt library now includes multiple timeout strategies to provide more reliable timeout behavior for arbitrary blocks of code.imeout Strategies in Attempt Library
 
 ## Overview
 
 The Attempt library now includes multiple timeout strategies to provide more relia## Performance Comparison
 
 - **Process**: Highest reliability, highest overhead
+- **Self-Pipe**: High reliability, moderate overhead (good balance)
 - **Custom**: Good reliability, low overhead
 - **Thread**: Good reliability, very low overhead
 - **Fiber**: Good reliability, lowest overhead (for cooperative code)
-- **Ruby Timeout**: Lowest reliability, lowest overheadmeout behavior for arbitrary blocks of code.
+- **Ruby Timeout**: Lowest reliability, lowest overhead
 
 ## Problems with Ruby's Standard Timeout
 
@@ -69,7 +72,27 @@ attempt(timeout: 5, timeout_strategy: :process) { risky_operation }
 - Higher overhead due to process creation
 - Results must be serializable with Marshal
 
-### 5. `:fiber`
+### 5. `:self_pipe`
+Self-pipe trick timeout (signal-safe, no threads, fork-based).
+
+```ruby
+attempt(timeout: 5, timeout_strategy: :self_pipe) { risky_operation }
+```
+
+**Advantages:**
+- Signal-safe - doesn't use Thread#raise
+- No thread creation overhead
+- Works well with blocking I/O and C extensions
+- Lighter weight than full `:process` strategy
+- Reliable timeout mechanism using IO.select
+
+**Limitations:**
+- Requires fork support (not available on Windows or JRuby)
+- Results must be serializable with Marshal
+- Slightly more overhead than pure thread/fiber approaches
+- Falls back to thread strategy if fork unavailable
+
+### 6. `:fiber`
 Fiber-based timeout (lightweight, cooperative scheduling).
 
 ```ruby
@@ -86,7 +109,7 @@ attempt(timeout: 5, timeout_strategy: :fiber) { risky_operation }
 - Falls back to fiber+thread hybrid for blocking operations
 - Newer feature, less battle-tested
 
-### 6. `:ruby_timeout`
+### 7. `:ruby_timeout`
 Uses Ruby's standard Timeout module (for compatibility).
 
 ```ruby
@@ -101,16 +124,22 @@ attempt(timeout: 5, timeout_strategy: :ruby_timeout) { risky_operation }
 
 ### For I/O Operations (Network, File I/O)
 ```ruby
-# Best: Process-based (most reliable)
+# Best: Self-pipe (good balance of reliability and performance)
+attempt(timeout: 30, timeout_strategy: :self_pipe) { Net::HTTP.get(uri) }
+
+# Alternative: Process-based (most reliable but heavier)
 attempt(timeout: 30, timeout_strategy: :process) { Net::HTTP.get(uri) }
 
-# Alternative: Custom timeout
+# Fallback: Custom timeout
 attempt(timeout: 30, timeout_strategy: :custom) { Net::HTTP.get(uri) }
 ```
 
 ### For CPU-Intensive Operations
 ```ruby
-# Best: Thread-based, custom, or fiber
+# Best: Self-pipe (signal-safe, reliable)
+attempt(timeout: 10, timeout_strategy: :self_pipe) { expensive_calculation }
+
+# Alternative: Thread-based, custom, or fiber
 attempt(timeout: 10, timeout_strategy: :thread) { expensive_calculation }
 attempt(timeout: 10, timeout_strategy: :fiber) { cooperative_calculation }
 ```

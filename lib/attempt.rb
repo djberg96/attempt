@@ -252,7 +252,7 @@ class Attempt
   attr_accessor :timeout
 
   # Strategy to use for timeout implementation
-  # Options: :auto, :custom, :thread, :process, :fiber, :ruby_timeout
+  # Options: :auto, :custom, :thread, :process, :fiber, :self_pipe, :ruby_timeout
   attr_accessor :timeout_strategy
 
   # Determines which exception level to check when looking for errors to
@@ -274,7 +274,8 @@ class Attempt
   #               until the maximum number of attempts has been made. The default is true.
   # * timeout   - Timeout in seconds to automatically wrap your proc in a Timeout block.
   #               Must be positive if provided. The default is nil (no timeout).
-  # * timeout_strategy - Strategy for timeout implementation. Options: :auto (default), :custom, :thread, :process, :fiber, :ruby_timeout
+  # * timeout_strategy - Strategy for timeout implementation. Options: :auto (default), :custom, :thread,
+  #                      :process, :fiber, :self_pipe, :ruby_timeout
   #
   # Example:
   #
@@ -380,6 +381,8 @@ class Attempt
       execute_with_process_timeout(timeout_value, &block)
     when :fiber
       execute_with_fiber_timeout(timeout_value, &block)
+    when :self_pipe
+      execute_with_self_pipe_timeout(timeout_value, &block)
     when :ruby_timeout
       Timeout.timeout(timeout_value, &block)
     else  # :auto
@@ -399,6 +402,8 @@ class Attempt
       execute_with_thread_timeout(timeout_value, &block)
     when :process
       execute_with_process_timeout(timeout_value, &block)
+    when :self_pipe
+      execute_with_self_pipe_timeout(timeout_value, &block)
     else
       execute_with_custom_timeout(timeout_value, &block)
     end
@@ -518,6 +523,140 @@ class Attempt
     end
   end
 
+  # Self-pipe trick timeout - signal-safe without threads
+  def execute_with_self_pipe_timeout(timeout_value, &block)
+    # Use a pipe for signaling completion and another for data transfer
+    signal_reader = signal_writer = data_reader = data_writer = nil
+    pid = nil
+
+    begin
+      signal_reader, signal_writer = IO.pipe
+      data_reader, data_writer = IO.pipe
+
+      pid = fork do
+        # Close read ends in child
+        signal_reader.close
+        data_reader.close
+
+        begin
+          result = yield
+
+          # Send result via data pipe
+          begin
+            Marshal.dump(result, data_writer)
+            data_writer.close
+
+            # Signal completion
+            signal_writer.write('done')
+            signal_writer.close
+            exit(0)
+          rescue => marshal_error
+            # If marshaling fails, signal error
+            data_writer.close rescue nil
+            signal_writer.write('marshal_error')
+            signal_writer.close rescue nil
+            exit(1)
+          end
+
+        rescue => e
+          # Send error via data pipe
+          begin
+            Marshal.dump({error: e}, data_writer)
+            data_writer.close
+            signal_writer.write('error')
+            signal_writer.close
+            exit(1)
+          rescue
+            # If even error marshaling fails
+            data_writer.close rescue nil
+            signal_writer.write('fatal_error')
+            signal_writer.close rescue nil
+            exit(2)
+          end
+        end
+      end
+
+      # Close write ends in parent
+      signal_writer.close
+      signal_writer = nil
+      data_writer.close
+      data_writer = nil
+
+      # Use IO.select to wait for completion or timeout
+      # We only need to watch the signal pipe for readiness
+      ready = IO.select([signal_reader], nil, nil, timeout_value)
+
+      if ready
+        # Process completed within timeout
+        signal = signal_reader.read(20)  # Read signal
+        Process.waitpid(pid)
+        pid = nil
+
+        case signal
+        when 'done'
+          # Success - read the result
+          result = Marshal.load(data_reader)
+          return result
+
+        when 'error'
+          # Exception occurred - read and re-raise it
+          error_data = Marshal.load(data_reader)
+
+          if error_data.is_a?(Hash) && error_data[:error]
+            raise error_data[:error]
+          else
+            raise StandardError, "Unknown error in subprocess"
+          end
+
+        when 'marshal_error'
+          raise StandardError, "Result could not be marshaled"
+
+        else
+          raise StandardError, "Fatal error in subprocess"
+        end
+
+      else
+        # Timeout occurred
+        if pid
+          Process.kill('TERM', pid) rescue nil
+          begin
+            Process.waitpid(pid)
+          rescue Errno::ECHILD
+            # Process already terminated
+          end
+          pid = nil
+        end
+
+        raise Timeout::Error, "execution expired after #{timeout_value} seconds"
+      end
+
+    rescue NotImplementedError, Errno::ENOTSUP
+      # Fork not available (Windows, some Ruby implementations)
+      # Fall back to thread-based timeout
+      return execute_with_thread_timeout(timeout_value, &block)
+    ensure
+      # Clean up any remaining file descriptors and processes
+      begin
+        [signal_reader, signal_writer, data_reader, data_writer].each do |io|
+          io.close if io && !io.closed?
+        end
+      rescue
+        # Ignore cleanup errors
+      end
+
+      if pid
+        begin
+          Process.kill('TERM', pid)
+          Process.waitpid(pid)
+        rescue Errno::ECHILD, Errno::ESRCH
+          # Process already terminated
+        rescue
+          # Ignore other cleanup errors
+        end
+      end
+    end
+  end
+
   # Log retry attempt information
   def log_retry_attempt(attempt_number, error)
     msg = "Attempt #{attempt_number} failed: #{error.class}: #{error.message}; retrying"
@@ -597,8 +736,11 @@ class Attempt
     source = extract_block_source(&block) if block.source_location
 
     if source
-      # I/O operations - process strategy is most reliable
-      return :process if source =~ /Net::HTTP|Socket|File\.|IO\.|system|`|Process\./
+      # I/O operations - process strategy is most reliable, self-pipe is good alternative
+      if source =~ /Net::HTTP|Socket|File\.|IO\.|system|`|Process\./
+        # Prefer self-pipe for I/O operations if available (lighter than full process)
+        return fork_available? ? :self_pipe : :process
+      end
 
       # Sleep operations - thread strategy is better than fiber for blocking sleep
       return :thread if source =~ /\bsleep\b/
@@ -606,8 +748,10 @@ class Attempt
       # Event-driven code - fiber strategy works well
       return :fiber if source =~ /EM\.|EventMachine|Async|\.async|Fiber\.yield/
 
-      # CPU-intensive - thread strategy
-      return :thread if source =~ /\d+\.times|while|loop|Array\.new\(\d+\)/
+      # CPU-intensive - self-pipe can be good for CPU work too
+      if source =~ /\d+\.times|while|loop|Array\.new\(\d+\)/
+        return fork_available? ? :self_pipe : :thread
+      end
     end
 
     # Use fiber detection if available (but be conservative)
@@ -616,8 +760,21 @@ class Attempt
       return :fiber
     end
 
-    # Default: custom timeout (safest general-purpose option)
-    :custom
+    # Default: try self-pipe if available, otherwise custom timeout
+    fork_available? ? :self_pipe : :custom
+  end
+
+  # Check if fork is available on this platform
+  def fork_available?
+    return @fork_available if defined?(@fork_available)
+
+    @fork_available = begin
+      # Test if fork is available
+      Process.respond_to?(:fork) &&
+      !defined?(RUBY_ENGINE) || RUBY_ENGINE != 'jruby'
+    rescue
+      false
+    end
   end
 
   # Extract source code from a block for analysis
