@@ -211,7 +211,7 @@ class AttemptTimeout
 
     lines = File.readlines(file)
     # Simple extraction - in practice, you'd want more sophisticated parsing
-    lines[line - 1..line + 5].join
+    lines[(line - 1)..(line + 5)].join
   rescue
     nil
   end
