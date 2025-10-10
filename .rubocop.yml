@@ -1,4 +1,4 @@
-require: rubocop-rspec
+plugins: rubocop-rspec
 
 RSpec/BeforeAfterAll:
   Enabled: false
@@ -6,8 +6,10 @@ RSpec/MultipleExpectations:
   Max: 4
 RSpec/ContextWording:
   Enabled: false
-RSpec/FilePath:
-  SpecSuffixOnly: true
+RSpec/SpecFilePathFormat:
+  Enabled: false
+RSpec/SpecFilePathSuffix:
+  Enabled: false
 RSpec/InstanceVariable:
   Enabled: false
 
