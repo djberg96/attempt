@@ -372,17 +372,17 @@ class Attempt
 
     case @timeout_strategy
       when :custom
-      execute_with_custom_timeout(timeout_value, &block)
+        execute_with_custom_timeout(timeout_value, &block)
       when :thread
-      execute_with_thread_timeout(timeout_value, &block)
+        execute_with_thread_timeout(timeout_value, &block)
       when :process
-      execute_with_process_timeout(timeout_value, &block)
+        execute_with_process_timeout(timeout_value, &block)
       when :fiber
-      execute_with_fiber_timeout(timeout_value, &block)
+        execute_with_fiber_timeout(timeout_value, &block)
       when :ruby_timeout
-      Timeout.timeout(timeout_value, &block)
+        Timeout.timeout(timeout_value, &block)
     else # :auto
-      execute_with_auto_timeout(timeout_value, &block)
+        execute_with_auto_timeout(timeout_value, &block)
     end
   end
 
@@ -393,13 +393,13 @@ class Attempt
 
     case strategy
       when :fiber
-      execute_with_fiber_timeout(timeout_value, &block)
+        execute_with_fiber_timeout(timeout_value, &block)
       when :thread
-      execute_with_thread_timeout(timeout_value, &block)
+        execute_with_thread_timeout(timeout_value, &block)
       when :process
-      execute_with_process_timeout(timeout_value, &block)
+        execute_with_process_timeout(timeout_value, &block)
     else
-      execute_with_custom_timeout(timeout_value, &block)
+        execute_with_custom_timeout(timeout_value, &block)
     end
   rescue NameError, NoMethodError
     # Fall back to other strategies if preferred strategy fails
