@@ -25,6 +25,8 @@ Style/BlockDelimiters:
   Enabled: false
 Style/NumericPredicate:
   Enabled: false
+Style/RedundantBegin:
+  Enabled: false
 Style/RescueStandardError:
   Enabled: false
 Style/Semicolon:
