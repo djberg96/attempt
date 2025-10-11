@@ -1,6 +1,6 @@
-#!/usr/bin/env ruby
+# frozen_string_literal: true
 
-require_relative 'lib/attempt'
+require 'attempt'
 
 puts '=== Testing Improved Attempt Library ==='
 
