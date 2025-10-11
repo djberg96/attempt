@@ -371,15 +371,15 @@ class Attempt
     return yield unless timeout_value
 
     case @timeout_strategy
-    when :custom
+      when :custom
       execute_with_custom_timeout(timeout_value, &block)
-    when :thread
+      when :thread
       execute_with_thread_timeout(timeout_value, &block)
-    when :process
+      when :process
       execute_with_process_timeout(timeout_value, &block)
-    when :fiber
+      when :fiber
       execute_with_fiber_timeout(timeout_value, &block)
-    when :ruby_timeout
+      when :ruby_timeout
       Timeout.timeout(timeout_value, &block)
     else # :auto
       execute_with_auto_timeout(timeout_value, &block)
@@ -392,11 +392,11 @@ class Attempt
     strategy = detect_optimal_strategy(&block)
 
     case strategy
-    when :fiber
+      when :fiber
       execute_with_fiber_timeout(timeout_value, &block)
-    when :thread
+      when :thread
       execute_with_thread_timeout(timeout_value, &block)
-    when :process
+      when :process
       execute_with_process_timeout(timeout_value, &block)
     else
       execute_with_custom_timeout(timeout_value, &block)
