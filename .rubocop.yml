@@ -26,6 +26,8 @@ Style/BlockDelimiters:
   Enabled: false
 Style/IfInsideElse:
   Enabled: false
+Style/IfUnlessModifier:
+  Enabled: false
 Style/NumericPredicate:
   Enabled: false
 Style/RedundantBegin:
