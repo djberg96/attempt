@@ -318,9 +318,6 @@ class Attempt
       else
         yield
       end
-
-      
-
     rescue @level => err
       remaining_tries = max_tries - attempts_made
 
