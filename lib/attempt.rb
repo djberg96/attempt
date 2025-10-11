@@ -313,13 +313,13 @@ class Attempt
     begin
       attempts_made += 1
 
-      result = if timeout_enabled?
+      if timeout_enabled?
         execute_with_timeout(&block)
       else
         yield
       end
 
-      result
+      
 
     rescue @level => err
       remaining_tries = max_tries - attempts_made
