@@ -56,9 +56,7 @@ class AttemptTimeout
 
     loop do
       elapsed = Time.now - start_time
-      if elapsed > seconds
-        raise Error, "execution expired after #{seconds} seconds"
-      end
+      raise Error, "execution expired after #{seconds} seconds" if elapsed > seconds
 
       begin
         result = fiber.resume
