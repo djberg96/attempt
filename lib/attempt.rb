@@ -18,8 +18,8 @@ class AttemptTimeout
     thread = Thread.new do
       begin
         result = yield
-      rescue => e
-        exception = e
+      rescue => err
+        exception = err
       end
     end
 
@@ -82,8 +82,8 @@ class AttemptTimeout
       fiber = Fiber.new do
         begin
           result = yield
-        rescue => e
-          exception = e
+        rescue => err
+          exception = err
         end
       end
 
@@ -410,8 +410,8 @@ class Attempt
   def execute_with_custom_timeout(timeout_value, &block)
     begin
       return AttemptTimeout.timeout(timeout_value, &block)
-    rescue AttemptTimeout::Error => e
-      raise Timeout::Error, e.message # Convert to expected exception type
+    rescue AttemptTimeout::Error => err
+      raise Timeout::Error, err.message # Convert to expected exception type
     end
   end
 
@@ -445,8 +445,8 @@ class Attempt
       begin
         result = yield
         Marshal.dump(result, writer)
-      rescue => e
-        Marshal.dump({error: e}, writer)
+      rescue => err
+        Marshal.dump({error: err}, writer)
       ensure
         writer.close
       end
@@ -490,8 +490,8 @@ class Attempt
     thread = Thread.new do
       begin
         result = yield
-      rescue => e
-        exception = e
+      rescue => err
+        exception = err
       ensure
         completed = true
       end
@@ -512,8 +512,8 @@ class Attempt
   def execute_with_fiber_timeout(timeout_value, &block)
     begin
       return AttemptTimeout.fiber_timeout(timeout_value, &block)
-    rescue AttemptTimeout::Error => e
-      raise Timeout::Error, e.message # Convert to expected exception type
+    rescue AttemptTimeout::Error => err
+      raise Timeout::Error, err.message # Convert to expected exception type
     end
   end
 

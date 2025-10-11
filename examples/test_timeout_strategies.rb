@@ -30,8 +30,8 @@ strategies.each do |strategy|
       io_operation(0.1)
     end
     puts "✓ Fast operation: #{result}"
-  rescue => e
-    puts "✗ Fast operation failed: #{e.message}"
+  rescue => err
+    puts "✗ Fast operation failed: #{err.message}"
   end
 
   # Test 2: Operation that times out
@@ -42,10 +42,10 @@ strategies.each do |strategy|
       end
     end
     puts "✗ Timeout test failed - should have timed out"
-  rescue Timeout::Error => e
-    puts "✓ Timeout worked: #{e.message}"
-  rescue => e
-    puts "✗ Unexpected error: #{e.class}: #{e.message}"
+  rescue Timeout::Error => err
+    puts "✓ Timeout worked: #{err.message}"
+  rescue => err
+    puts "✗ Unexpected error: #{err.class}: #{err.message}"
   end
 end
 

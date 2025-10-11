@@ -15,22 +15,22 @@ begin
     "Success!"
   end
   puts "  Result: #{result}"
-rescue => e
-  puts "  Final error: #{e.message}"
+rescue => err
+  puts "  Final error: #{err.message}"
 end
 
 # Test 2: Parameter validation (our improvement)
 puts "\n2. Parameter validation:"
 begin
   Attempt.new(tries: -1)
-rescue ArgumentError => e
-  puts "  ✓ Caught invalid tries: #{e.message}"
+rescue ArgumentError => err
+  puts "  ✓ Caught invalid tries: #{err.message}"
 end
 
 begin
   Attempt.new(interval: -5)
-rescue ArgumentError => e
-  puts "  ✓ Caught invalid interval: #{e.message}"
+rescue ArgumentError => err
+  puts "  ✓ Caught invalid interval: #{err.message}"
 end
 
 # Test 3: Configuration inspection (our improvement)
@@ -45,9 +45,9 @@ begin
   attempt(tries: 2, interval: 0.1, warnings: false) do
     raise StandardError, "This is a test error"
   end
-rescue => e
-  puts "  Final error class: #{e.class}"
-  puts "  Final error message: #{e.message}"
+rescue => err
+  puts "  Final error class: #{err.class}"
+  puts "  Final error message: #{err.message}"
 end
 
 # Test 5: Timeout with numeric value (our improvement)

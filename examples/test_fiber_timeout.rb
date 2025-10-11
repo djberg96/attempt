@@ -12,8 +12,8 @@ begin
     "Fiber timeout test completed!"
   end
   puts "✓ #{result}"
-rescue => e
-  puts "✗ Error: #{e.message}"
+rescue => err
+  puts "✗ Error: #{err.message}"
 end
 
 # Test 2: Fiber timeout that should timeout
@@ -25,11 +25,11 @@ begin
     "Should not reach here"
   end
   puts "✗ Should have timed out"
-rescue Timeout::Error => e
+rescue Timeout::Error => err
   elapsed = Time.now - start_time
-  puts "✓ Timed out as expected: #{e.message} (elapsed: #{elapsed.round(2)}s)"
-rescue => e
-  puts "✗ Unexpected error: #{e.class}: #{e.message}"
+  puts "✓ Timed out as expected: #{err.message} (elapsed: #{elapsed.round(2)}s)"
+rescue => err
+  puts "✗ Unexpected error: #{err.class}: #{err.message}"
 end
 
 # Test 3: Compare fiber vs thread timeout performance
@@ -83,10 +83,10 @@ begin
   attempt(tries: 1, timeout: 2, timeout_strategy: :fiber) do
     raise StandardError, "Test error in fiber"
   end
-rescue StandardError => e
-  puts "✓ Error properly caught: #{e.message}"
-rescue => e
-  puts "✗ Unexpected error type: #{e.class}: #{e.message}"
+rescue StandardError => err
+  puts "✓ Error properly caught: #{err.message}"
+rescue => err
+  puts "✗ Unexpected error type: #{err.class}: #{err.message}"
 end
 
 puts "\n=== Fiber timeout strategy tests completed ==="
