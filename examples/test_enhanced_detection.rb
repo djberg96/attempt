@@ -57,7 +57,6 @@ test_cases.each do |test_case|
     # Also test fiber compatibility detection
     fiber_compatible = AttemptTimeout.fiber_compatible_block?(&test_case[:block])
     puts "  Fiber compatible: #{fiber_compatible}"
-
   rescue => err
     puts "#{test_case[:name]}: ✗ ERROR - #{err.message}"
   end
@@ -91,7 +90,6 @@ strategies_to_test.each do |test|
 
     elapsed = Time.now - start_time
     puts "  ✓ #{result} (#{elapsed.round(3)}s)"
-
   rescue => err
     puts "  ✗ #{err.class}: #{err.message}"
   end
