@@ -36,7 +36,7 @@ strategies.each do |strategy|
 
   # Test 2: Operation that times out
   begin
-    time = Benchmark.realtime do
+    Benchmark.realtime do
       attempt(tries: 1, timeout: 0.5, timeout_strategy: strategy) do
         io_operation(2)  # This should timeout
       end

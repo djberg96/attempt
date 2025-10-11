@@ -9,7 +9,7 @@ class AttemptTimeout
 
   # More reliable timeout using Thread + sleep instead of Timeout.timeout
   # This approach is safer as it doesn't use Thread#raise
-  def self.timeout(seconds, &block)
+  def self.timeout(seconds)
     return yield if seconds.nil? || seconds <= 0
 
     result = nil
@@ -74,7 +74,7 @@ class AttemptTimeout
   end
 
   # Hybrid approach: fiber in a thread with timeout
-  def self.fiber_thread_hybrid_timeout(seconds, &block)
+  def self.fiber_thread_hybrid_timeout(seconds)
     result = nil
     exception = nil
 
@@ -174,7 +174,7 @@ class AttemptTimeout
   end
 
   # Method 3: Time-based analysis - quick execution suggests yielding
-  def self.detect_by_timing_analysis(&block)
+  def self.detect_by_timing_analysis()
     return false unless block_given?
 
     # Test execution in a thread with very short timeout
@@ -203,7 +203,6 @@ class AttemptTimeout
     false
   end
 
-  private
 
   # Extract source code from a block (Ruby 2.7+ method)
   def self.extract_block_source(&block)
@@ -214,7 +213,7 @@ class AttemptTimeout
 
     lines = File.readlines(file)
     # Simple extraction - in practice, you'd want more sophisticated parsing
-    lines[line - 1..line + 5].join
+    lines[(line - 1)..(line + 5)].join
   rescue
     nil
   end
@@ -460,7 +459,7 @@ class Attempt
       result = Marshal.load(reader)
     else
       # Wait for timeout
-      if IO.select([reader], nil, nil, timeout_value)
+      if reader.wait_readable(timeout_value)
         Process.waitpid(pid)
         result = Marshal.load(reader)
       else
@@ -483,7 +482,7 @@ class Attempt
   end
 
   # Improved thread-based timeout
-  def execute_with_thread_timeout(timeout_value, &block)
+  def execute_with_thread_timeout(timeout_value)
     result = nil
     exception = nil
     completed = false
