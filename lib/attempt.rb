@@ -153,7 +153,7 @@ class AttemptTimeout
       /\.async\b/,                    # Async method calls
       /\bawait\b/,                    # Await-style calls
       /\bIO\.select\b/,               # IO operations
-      /\bsocket\./i,                  # Socket operations
+      /\bsocket\./i                   # Socket operations
     ]
 
     blocking_patterns = [
@@ -162,7 +162,7 @@ class AttemptTimeout
       /\bwhile\s+true\b/,             # Infinite loops
       /\bloop\s+do\b/,                # Loop blocks
       /\d+\.times\s+do\b/,            # Numeric iteration
-      /\bArray\.new\(/,               # Large array creation
+      /\bArray\.new\(/                # Large array creation
     ]
 
     has_yielding = yielding_patterns.any? { |pattern| source =~ pattern }
