@@ -174,7 +174,7 @@ class AttemptTimeout
   end
 
   # Method 3: Time-based analysis - quick execution suggests yielding
-  def self.detect_by_timing_analysis()
+  def self.detect_by_timing_analysis
     return false unless block_given?
 
     # Test execution in a thread with very short timeout
