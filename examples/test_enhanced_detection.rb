@@ -14,7 +14,7 @@ test_cases = [
   {
     name: "Sleep operation (should use thread - blocking)",
     block: -> { sleep(0.001) },
-    expected_strategy: :thread  # Changed from :fiber - sleep is blocking in fiber context
+    expected_strategy: :thread # Changed from :fiber - sleep is blocking in fiber context
   },
   {
     name: "File I/O operation (should use process)",
@@ -29,7 +29,7 @@ test_cases = [
   {
     name: "Simple calculation (should use custom/fiber)",
     block: -> { Math.sqrt(100) },
-    expected_strategy: [:custom, :fiber]  # Could be either
+    expected_strategy: [:custom, :fiber] # Could be either
   }
 ]
 

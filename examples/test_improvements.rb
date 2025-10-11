@@ -54,7 +54,7 @@ end
 puts "\n5. Numeric timeout:"
 begin
   result = attempt(tries: 1, timeout: 0.1) do
-    sleep 0.05  # This should succeed
+    sleep 0.05 # This should succeed
     "Completed within timeout"
   end
   puts "  ✓ #{result}"

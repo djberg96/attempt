@@ -21,7 +21,7 @@ puts "\n2. Testing fiber timeout that should timeout:"
 begin
   start_time = Time.now
   attempt(tries: 1, timeout: 0.5, timeout_strategy: :fiber) do
-    sleep 2  # This should timeout
+    sleep 2 # This should timeout
     "Should not reach here"
   end
   puts "✗ Should have timed out"

@@ -90,7 +90,7 @@ class AttemptTimeout
       # Resume the fiber until completion
       while fiber.alive?
         fiber.resume
-        Thread.pass  # Allow other threads to run
+        Thread.pass # Allow other threads to run
       end
     end
 
@@ -127,15 +127,15 @@ class AttemptTimeout
 
       begin
         test_fiber.resume
-        yields_detected += 1 if (Time.now - start_time) < 0.01  # Quick yield
+        yields_detected += 1 if (Time.now - start_time) < 0.01 # Quick yield
       rescue FiberError, StandardError
         break
       end
     end
 
-    yields_detected > 1  # Multiple quick yields suggest cooperative behavior
+    yields_detected > 1 # Multiple quick yields suggest cooperative behavior
   rescue
-    false  # If anything goes wrong, assume non-cooperative
+    false # If anything goes wrong, assume non-cooperative
   end
 
   # Method 2: Analyze the block's source code for yield indicators
@@ -345,7 +345,7 @@ class Attempt
   # Returns the effective timeout value (handles both boolean and numeric values)
   def effective_timeout
     return nil unless timeout_enabled?
-    @timeout.is_a?(Numeric) ? @timeout : 10  # Default timeout if true was passed
+    @timeout.is_a?(Numeric) ? @timeout : 10 # Default timeout if true was passed
   end
 
   # Returns a summary of the current configuration
@@ -381,7 +381,7 @@ class Attempt
       execute_with_fiber_timeout(timeout_value, &block)
     when :ruby_timeout
       Timeout.timeout(timeout_value, &block)
-    else  # :auto
+    else # :auto
       execute_with_auto_timeout(timeout_value, &block)
     end
   end
@@ -411,7 +411,7 @@ class Attempt
     begin
       return AttemptTimeout.timeout(timeout_value, &block)
     rescue AttemptTimeout::Error => e
-      raise Timeout::Error, e.message  # Convert to expected exception type
+      raise Timeout::Error, e.message # Convert to expected exception type
     end
   end
 
@@ -500,7 +500,7 @@ class Attempt
     # Wait for completion or timeout
     unless thread.join(timeout_value)
       thread.kill
-      thread.join(0.1)  # Give thread time to clean up
+      thread.join(0.1) # Give thread time to clean up
       raise Timeout::Error, "execution expired after #{timeout_value} seconds"
     end
 
@@ -513,7 +513,7 @@ class Attempt
     begin
       return AttemptTimeout.fiber_timeout(timeout_value, &block)
     rescue AttemptTimeout::Error => e
-      raise Timeout::Error, e.message  # Convert to expected exception type
+      raise Timeout::Error, e.message # Convert to expected exception type
     end
   end
 
