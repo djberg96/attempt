@@ -1,9 +1,9 @@
-#!/usr/bin/env ruby
+# frozen_string_literal: true
 
-require_relative 'lib/attempt'
+require 'attempt'
 require 'benchmark'
 
-puts "=== Testing Different Timeout Strategies ==="
+puts '=== Testing Different Timeout Strategies ==='
 
 def blocking_operation(duration)
   start_time = Time.now
@@ -19,7 +19,7 @@ def io_operation(duration)
   "IO completed after #{duration}s"
 end
 
-strategies = [:auto, :custom, :thread, :process, :fiber, :ruby_timeout]
+strategies = %i[auto custom thread process fiber ruby_timeout]
 
 strategies.each do |strategy|
   puts "\n--- Testing #{strategy.to_s.upcase} strategy ---"
@@ -30,22 +30,22 @@ strategies.each do |strategy|
       io_operation(0.1)
     end
     puts "✓ Fast operation: #{result}"
-  rescue => e
-    puts "✗ Fast operation failed: #{e.message}"
+  rescue => err
+    puts "✗ Fast operation failed: #{err.message}"
   end
 
   # Test 2: Operation that times out
   begin
-    time = Benchmark.realtime do
+    Benchmark.realtime do
       attempt(tries: 1, timeout: 0.5, timeout_strategy: strategy) do
-        io_operation(2)  # This should timeout
+        io_operation(2) # This should timeout
       end
     end
-    puts "✗ Timeout test failed - should have timed out"
-  rescue Timeout::Error => e
-    puts "✓ Timeout worked: #{e.message}"
-  rescue => e
-    puts "✗ Unexpected error: #{e.class}: #{e.message}"
+    puts '✗ Timeout test failed - should have timed out'
+  rescue Timeout::Error => err
+    puts "✓ Timeout worked: #{err.message}"
+  rescue => err
+    puts "✗ Unexpected error: #{err.class}: #{err.message}"
   end
 end
 

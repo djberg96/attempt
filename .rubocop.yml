@@ -20,10 +20,19 @@ AllCops:
     - attempt.gemspec
     - Rakefile
     - Gemfile
+    - examples/*.rb
 
 Style/BlockDelimiters:
   Enabled: false
+Style/IfInsideElse:
+  Enabled: false
+Style/IfUnlessModifier:
+  Enabled: false
 Style/NumericPredicate:
+  Enabled: false
+Style/RedundantBegin:
+  Enabled: false
+Style/RescueStandardError:
   Enabled: false
 Style/Semicolon:
   Enabled: false
@@ -33,6 +42,8 @@ Layout/EmptyLineAfterGuardClause:
 Layout/CaseIndentation:
   IndentOneStep: true
 Layout/SpaceBeforeBlockBraces:
+  Enabled: false
+Layout/SpaceInsideHashLiteralBraces:
   Enabled: false
 
 Metrics/BlockLength:
@@ -48,3 +59,6 @@ Metrics/PerceivedComplexity:
 
 Naming/RescuedExceptionsVariableName:
   PreferredName: 'err'
+
+Security/MarshalLoad:
+  Enabled: false

@@ -9,7 +9,7 @@ class AttemptTimeout
 
   # More reliable timeout using Thread + sleep instead of Timeout.timeout
   # This approach is safer as it doesn't use Thread#raise
-  def self.timeout(seconds, &block)
+  def self.timeout(seconds)
     return yield if seconds.nil? || seconds <= 0
 
     result = nil
@@ -18,8 +18,8 @@ class AttemptTimeout
     thread = Thread.new do
       begin
         result = yield
-      rescue => e
-        exception = e
+      rescue => err
+        exception = err
       end
     end
 
@@ -56,9 +56,7 @@ class AttemptTimeout
 
     loop do
       elapsed = Time.now - start_time
-      if elapsed > seconds
-        raise Error, "execution expired after #{seconds} seconds"
-      end
+      raise Error, "execution expired after #{seconds} seconds" if elapsed > seconds
 
       begin
         result = fiber.resume
@@ -74,7 +72,7 @@ class AttemptTimeout
   end
 
   # Hybrid approach: fiber in a thread with timeout
-  def self.fiber_thread_hybrid_timeout(seconds, &block)
+  def self.fiber_thread_hybrid_timeout(seconds)
     result = nil
     exception = nil
 
@@ -82,15 +80,15 @@ class AttemptTimeout
       fiber = Fiber.new do
         begin
           result = yield
-        rescue => e
-          exception = e
+        rescue => err
+          exception = err
         end
       end
 
       # Resume the fiber until completion
       while fiber.alive?
         fiber.resume
-        Thread.pass  # Allow other threads to run
+        Thread.pass # Allow other threads to run
       end
     end
 
@@ -109,8 +107,8 @@ class AttemptTimeout
   def self.fiber_compatible_block?(&block)
     # Try multiple detection strategies
     detect_by_execution_pattern(&block) ||
-    detect_by_source_analysis(&block) ||
-    detect_by_timing_analysis(&block)
+      detect_by_source_analysis(&block) ||
+      detect_by_timing_analysis(&block)
   end
 
   # Method 1: Execute in a test fiber and see if it yields naturally
@@ -127,15 +125,15 @@ class AttemptTimeout
 
       begin
         test_fiber.resume
-        yields_detected += 1 if (Time.now - start_time) < 0.01  # Quick yield
-      rescue FiberError, StandardError
+        yields_detected += 1 if (Time.now - start_time) < 0.01 # Quick yield
+      rescue FiberError
         break
       end
     end
 
-    yields_detected > 1  # Multiple quick yields suggest cooperative behavior
+    yields_detected > 1 # Multiple quick yields suggest cooperative behavior
   rescue
-    false  # If anything goes wrong, assume non-cooperative
+    false # If anything goes wrong, assume non-cooperative
   end
 
   # Method 2: Analyze the block's source code for yield indicators
@@ -153,7 +151,7 @@ class AttemptTimeout
       /\.async\b/,                    # Async method calls
       /\bawait\b/,                    # Await-style calls
       /\bIO\.select\b/,               # IO operations
-      /\bsocket\./i,                  # Socket operations
+      /\bsocket\./i                   # Socket operations
     ]
 
     blocking_patterns = [
@@ -162,7 +160,7 @@ class AttemptTimeout
       /\bwhile\s+true\b/,             # Infinite loops
       /\bloop\s+do\b/,                # Loop blocks
       /\d+\.times\s+do\b/,            # Numeric iteration
-      /\bArray\.new\(/,               # Large array creation
+      /\bArray\.new\(/                # Large array creation
     ]
 
     has_yielding = yielding_patterns.any? { |pattern| source =~ pattern }
@@ -174,7 +172,7 @@ class AttemptTimeout
   end
 
   # Method 3: Time-based analysis - quick execution suggests yielding
-  def self.detect_by_timing_analysis(&block)
+  def self.detect_by_timing_analysis
     return false unless block_given?
 
     # Test execution in a thread with very short timeout
@@ -203,8 +201,6 @@ class AttemptTimeout
     false
   end
 
-  private
-
   # Extract source code from a block (Ruby 2.7+ method)
   def self.extract_block_source(&block)
     return nil unless block.respond_to?(:source_location)
@@ -214,7 +210,7 @@ class AttemptTimeout
 
     lines = File.readlines(file)
     # Simple extraction - in practice, you'd want more sophisticated parsing
-    lines[line - 1..line + 5].join
+    lines[(line - 1)..(line + 5)].join
   rescue
     nil
   end
@@ -315,14 +311,11 @@ class Attempt
     begin
       attempts_made += 1
 
-      result = if timeout_enabled?
+      if timeout_enabled?
         execute_with_timeout(&block)
       else
         yield
       end
-
-      return result
-
     rescue @level => err
       remaining_tries = max_tries - attempts_made
 
@@ -346,7 +339,7 @@ class Attempt
   # Returns the effective timeout value (handles both boolean and numeric values)
   def effective_timeout
     return nil unless timeout_enabled?
-    @timeout.is_a?(Numeric) ? @timeout : 10  # Default timeout if true was passed
+    @timeout.is_a?(Numeric) ? @timeout : 10 # Default timeout if true was passed
   end
 
   # Returns a summary of the current configuration
@@ -372,18 +365,18 @@ class Attempt
     return yield unless timeout_value
 
     case @timeout_strategy
-    when :custom
-      execute_with_custom_timeout(timeout_value, &block)
-    when :thread
-      execute_with_thread_timeout(timeout_value, &block)
-    when :process
-      execute_with_process_timeout(timeout_value, &block)
-    when :fiber
-      execute_with_fiber_timeout(timeout_value, &block)
-    when :ruby_timeout
-      Timeout.timeout(timeout_value, &block)
-    else  # :auto
-      execute_with_auto_timeout(timeout_value, &block)
+      when :custom
+        execute_with_custom_timeout(timeout_value, &block)
+      when :thread
+        execute_with_thread_timeout(timeout_value, &block)
+      when :process
+        execute_with_process_timeout(timeout_value, &block)
+      when :fiber
+        execute_with_fiber_timeout(timeout_value, &block)
+      when :ruby_timeout
+        Timeout.timeout(timeout_value, &block)
+      else # :auto
+        execute_with_auto_timeout(timeout_value, &block)
     end
   end
 
@@ -393,16 +386,16 @@ class Attempt
     strategy = detect_optimal_strategy(&block)
 
     case strategy
-    when :fiber
-      execute_with_fiber_timeout(timeout_value, &block)
-    when :thread
-      execute_with_thread_timeout(timeout_value, &block)
-    when :process
-      execute_with_process_timeout(timeout_value, &block)
-    else
-      execute_with_custom_timeout(timeout_value, &block)
+      when :fiber
+        execute_with_fiber_timeout(timeout_value, &block)
+      when :thread
+        execute_with_thread_timeout(timeout_value, &block)
+      when :process
+        execute_with_process_timeout(timeout_value, &block)
+      else
+        execute_with_custom_timeout(timeout_value, &block)
     end
-  rescue NameError, NoMethodError
+  rescue NameError
     # Fall back to other strategies if preferred strategy fails
     execute_with_fallback_timeout(timeout_value, &block)
   end
@@ -410,9 +403,9 @@ class Attempt
   # Custom timeout using our AttemptTimeout class
   def execute_with_custom_timeout(timeout_value, &block)
     begin
-      return AttemptTimeout.timeout(timeout_value, &block)
-    rescue AttemptTimeout::Error => e
-      raise Timeout::Error, e.message  # Convert to expected exception type
+      AttemptTimeout.timeout(timeout_value, &block)
+    rescue AttemptTimeout::Error => err
+      raise Timeout::Error, err.message # Convert to expected exception type
     end
   end
 
@@ -426,12 +419,12 @@ class Attempt
     # Strategy 3: Fiber-based timeout (lightweight alternative)
     begin
       return execute_with_fiber_timeout(timeout_value, &block)
-    rescue NameError, NoMethodError
+    rescue NameError
       # Fiber support may not be available in all Ruby versions
     end
 
     # Strategy 4: Thread-based timeout with better error handling
-    return execute_with_thread_timeout(timeout_value, &block)
+    execute_with_thread_timeout(timeout_value, &block)
   rescue
     # Strategy 5: Last resort - use Ruby's Timeout (least reliable)
     Timeout.timeout(timeout_value, &block)
@@ -446,8 +439,8 @@ class Attempt
       begin
         result = yield
         Marshal.dump(result, writer)
-      rescue => e
-        Marshal.dump({error: e}, writer)
+      rescue => err
+        Marshal.dump({error: err}, writer)
       ensure
         writer.close
       end
@@ -460,7 +453,7 @@ class Attempt
       result = Marshal.load(reader)
     else
       # Wait for timeout
-      if IO.select([reader], nil, nil, timeout_value)
+      if reader.wait_readable(timeout_value)
         Process.waitpid(pid)
         result = Marshal.load(reader)
       else
@@ -483,7 +476,7 @@ class Attempt
   end
 
   # Improved thread-based timeout
-  def execute_with_thread_timeout(timeout_value, &block)
+  def execute_with_thread_timeout(timeout_value)
     result = nil
     exception = nil
     completed = false
@@ -491,8 +484,8 @@ class Attempt
     thread = Thread.new do
       begin
         result = yield
-      rescue => e
-        exception = e
+      rescue => err
+        exception = err
       ensure
         completed = true
       end
@@ -501,7 +494,7 @@ class Attempt
     # Wait for completion or timeout
     unless thread.join(timeout_value)
       thread.kill
-      thread.join(0.1)  # Give thread time to clean up
+      thread.join(0.1) # Give thread time to clean up
       raise Timeout::Error, "execution expired after #{timeout_value} seconds"
     end
 
@@ -512,9 +505,9 @@ class Attempt
   # Fiber-based timeout - lightweight alternative
   def execute_with_fiber_timeout(timeout_value, &block)
     begin
-      return AttemptTimeout.fiber_timeout(timeout_value, &block)
-    rescue AttemptTimeout::Error => e
-      raise Timeout::Error, e.message  # Convert to expected exception type
+      AttemptTimeout.fiber_timeout(timeout_value, &block)
+    rescue AttemptTimeout::Error => err
+      raise Timeout::Error, err.message # Convert to expected exception type
     end
   end
 
@@ -581,7 +574,7 @@ class Attempt
     return nil if log.nil?
 
     unless log.respond_to?(:puts) || log.respond_to?(:warn) || log.respond_to?(:write)
-      raise ArgumentError, "log must respond to :puts, :warn, or :write methods"
+      raise ArgumentError, 'log must respond to :puts, :warn, or :write methods'
     end
     log
   end
