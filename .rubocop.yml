@@ -24,6 +24,8 @@ AllCops:
 
 Style/BlockDelimiters:
   Enabled: false
+Style/IfInsideElse:
+  Enabled: false
 Style/NumericPredicate:
   Enabled: false
 Style/RedundantBegin:
