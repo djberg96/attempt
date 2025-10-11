@@ -203,7 +203,6 @@ class AttemptTimeout
     false
   end
 
-
   # Extract source code from a block (Ruby 2.7+ method)
   def self.extract_block_source(&block)
     return nil unless block.respond_to?(:source_location)
