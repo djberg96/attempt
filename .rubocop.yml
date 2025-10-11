@@ -48,3 +48,6 @@ Metrics/PerceivedComplexity:
 
 Naming/RescuedExceptionsVariableName:
   PreferredName: 'err'
+
+Security/MarshalLoad:
+  Enabled: false
