@@ -36,6 +36,8 @@ Layout/CaseIndentation:
   IndentOneStep: true
 Layout/SpaceBeforeBlockBraces:
   Enabled: false
+Layout/SpaceInsideHashLiteralBraces:
+  Enabled: false
 
 Metrics/BlockLength:
   AllowedMethods: ['describe', 'context']
