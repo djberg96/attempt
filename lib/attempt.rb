@@ -397,7 +397,7 @@ class Attempt
       else
         execute_with_custom_timeout(timeout_value, &block)
     end
-  rescue NameError, NoMethodError
+  rescue NameError
     # Fall back to other strategies if preferred strategy fails
     execute_with_fallback_timeout(timeout_value, &block)
   end
@@ -421,7 +421,7 @@ class Attempt
     # Strategy 3: Fiber-based timeout (lightweight alternative)
     begin
       return execute_with_fiber_timeout(timeout_value, &block)
-    rescue NameError, NoMethodError
+    rescue NameError
       # Fiber support may not be available in all Ruby versions
     end
 
