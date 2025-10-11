@@ -126,7 +126,7 @@ class AttemptTimeout
       begin
         test_fiber.resume
         yields_detected += 1 if (Time.now - start_time) < 0.01 # Quick yield
-      rescue FiberError, StandardError
+      rescue FiberError
         break
       end
     end
