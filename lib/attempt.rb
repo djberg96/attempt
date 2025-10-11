@@ -381,7 +381,7 @@ class Attempt
         execute_with_fiber_timeout(timeout_value, &block)
       when :ruby_timeout
         Timeout.timeout(timeout_value, &block)
-    else # :auto
+      else # :auto
         execute_with_auto_timeout(timeout_value, &block)
     end
   end
@@ -398,7 +398,7 @@ class Attempt
         execute_with_thread_timeout(timeout_value, &block)
       when :process
         execute_with_process_timeout(timeout_value, &block)
-    else
+      else
         execute_with_custom_timeout(timeout_value, &block)
     end
   rescue NameError, NoMethodError
