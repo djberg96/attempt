@@ -2,7 +2,7 @@
 
 require_relative 'lib/attempt'
 
-puts "=== Testing Improved Attempt Library ==="
+puts '=== Testing Improved Attempt Library ==='
 
 # Test 1: Basic functionality
 puts "\n1. Basic retry functionality:"
@@ -11,8 +11,8 @@ begin
   result = attempt(tries: 3, interval: 0.1) do
     counter += 1
     puts "  Attempt #{counter}"
-    raise "Simulated error" if counter < 3
-    "Success!"
+    raise 'Simulated error' if counter < 3
+    'Success!'
   end
   puts "  Result: #{result}"
 rescue => err
@@ -43,7 +43,7 @@ puts "  Timeout enabled: #{attempt_obj.timeout_enabled?}"
 puts "\n4. Improved error logging:"
 begin
   attempt(tries: 2, interval: 0.1, warnings: false) do
-    raise StandardError, "This is a test error"
+    raise StandardError, 'This is a test error'
   end
 rescue => err
   puts "  Final error class: #{err.class}"
@@ -55,11 +55,11 @@ puts "\n5. Numeric timeout:"
 begin
   result = attempt(tries: 1, timeout: 0.1) do
     sleep 0.05 # This should succeed
-    "Completed within timeout"
+    'Completed within timeout'
   end
   puts "  ✓ #{result}"
 rescue Timeout::Error
-  puts "  ✗ Timed out unexpectedly"
+  puts '  ✗ Timed out unexpectedly'
 end
 
 puts "\n=== All tests completed ==="

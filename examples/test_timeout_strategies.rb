@@ -3,7 +3,7 @@
 require_relative 'lib/attempt'
 require 'benchmark'
 
-puts "=== Testing Different Timeout Strategies ==="
+puts '=== Testing Different Timeout Strategies ==='
 
 def blocking_operation(duration)
   start_time = Time.now
@@ -41,7 +41,7 @@ strategies.each do |strategy|
         io_operation(2) # This should timeout
       end
     end
-    puts "✗ Timeout test failed - should have timed out"
+    puts '✗ Timeout test failed - should have timed out'
   rescue Timeout::Error => err
     puts "✓ Timeout worked: #{err.message}"
   rescue => err

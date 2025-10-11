@@ -2,14 +2,14 @@
 
 require_relative 'lib/attempt'
 
-puts "=== Testing Fiber Timeout Strategy ==="
+puts '=== Testing Fiber Timeout Strategy ==='
 
 # Test 1: Basic fiber timeout functionality
 puts "\n1. Testing fiber timeout with fast operation:"
 begin
   result = attempt(tries: 1, timeout: 2, timeout_strategy: :fiber) do
     sleep 0.1
-    "Fiber timeout test completed!"
+    'Fiber timeout test completed!'
   end
   puts "✓ #{result}"
 rescue => err
@@ -22,9 +22,9 @@ begin
   start_time = Time.now
   attempt(tries: 1, timeout: 0.5, timeout_strategy: :fiber) do
     sleep 2 # This should timeout
-    "Should not reach here"
+    'Should not reach here'
   end
-  puts "✗ Should have timed out"
+  puts '✗ Should have timed out'
 rescue Timeout::Error => err
   elapsed = Time.now - start_time
   puts "✓ Timed out as expected: #{err.message} (elapsed: #{elapsed.round(2)}s)"
@@ -38,34 +38,34 @@ require 'benchmark'
 
 operations = 10
 
-puts "Fiber strategy:"
+puts 'Fiber strategy:'
 fiber_time = Benchmark.realtime do
   operations.times do
     attempt(tries: 1, timeout: 1, timeout_strategy: :fiber) do
       sleep 0.01
-      "done"
+      'done'
     end
   end
 end
 puts "  #{operations} operations: #{fiber_time.round(4)}s"
 
-puts "Thread strategy:"
+puts 'Thread strategy:'
 thread_time = Benchmark.realtime do
   operations.times do
     attempt(tries: 1, timeout: 1, timeout_strategy: :thread) do
       sleep 0.01
-      "done"
+      'done'
     end
   end
 end
 puts "  #{operations} operations: #{thread_time.round(4)}s"
 
-puts "Custom strategy:"
+puts 'Custom strategy:'
 custom_time = Benchmark.realtime do
   operations.times do
     attempt(tries: 1, timeout: 1, timeout_strategy: :custom) do
       sleep 0.01
-      "done"
+      'done'
     end
   end
 end
@@ -81,7 +81,7 @@ puts "Configuration: #{config}"
 puts "\n5. Error handling in fiber timeout:"
 begin
   attempt(tries: 1, timeout: 2, timeout_strategy: :fiber) do
-    raise StandardError, "Test error in fiber"
+    raise StandardError, 'Test error in fiber'
   end
 rescue StandardError => err
   puts "✓ Error properly caught: #{err.message}"

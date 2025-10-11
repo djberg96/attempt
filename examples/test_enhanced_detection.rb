@@ -2,32 +2,32 @@
 
 require_relative 'lib/attempt'
 
-puts "=== Testing Enhanced Fiber Detection ==="
+puts '=== Testing Enhanced Fiber Detection ==='
 
 # Test cases to verify the enhanced detection
 test_cases = [
   {
-    name: "CPU intensive operation (should use thread)",
+    name: 'CPU intensive operation (should use thread)',
     block: -> { 10_000.times { |i| i * 2 } },
     expected_strategy: :thread
   },
   {
-    name: "Sleep operation (should use thread - blocking)",
+    name: 'Sleep operation (should use thread - blocking)',
     block: -> { sleep(0.001) },
     expected_strategy: :thread # Changed from :fiber - sleep is blocking in fiber context
   },
   {
-    name: "File I/O operation (should use process)",
+    name: 'File I/O operation (should use process)',
     block: -> { File.read(__FILE__) },
     expected_strategy: :process
   },
   {
-    name: "Network operation (should use process)",
+    name: 'Network operation (should use process)',
     block: -> { Net::HTTP.get(URI('http://httpbin.org/json')) },
     expected_strategy: :process
   },
   {
-    name: "Simple calculation (should use custom/fiber)",
+    name: 'Simple calculation (should use custom/fiber)',
     block: -> { Math.sqrt(100) },
     expected_strategy: [:custom, :fiber] # Could be either
   }
@@ -50,7 +50,7 @@ test_cases.each do |test_case|
       detected_strategy == expected
     end
 
-    status = passed ? "✓ PASS" : "✗ FAIL"
+    status = passed ? '✓ PASS' : '✗ FAIL'
     puts "#{test_case[:name]}: #{status}"
     puts "  Expected: #{expected}, Detected: #{detected_strategy}"
 
@@ -64,18 +64,18 @@ test_cases.each do |test_case|
   puts
 end
 
-puts "--- Live Strategy Selection Test ---"
+puts '--- Live Strategy Selection Test ---'
 
 # Test actual timeout strategy selection in action
 strategies_to_test = [
   {
-    name: "Auto-selected strategy for sleep",
-    block: -> { sleep(0.01); "sleep completed" },
+    name: 'Auto-selected strategy for sleep',
+    block: -> { sleep(0.01); 'sleep completed' },
     timeout: 1
   },
   {
-    name: "Auto-selected strategy for calculation",
-    block: -> { 1000.times { |i| Math.sqrt(i) }; "calculation completed" },
+    name: 'Auto-selected strategy for calculation',
+    block: -> { 1000.times { |i| Math.sqrt(i) }; 'calculation completed' },
     timeout: 2
   }
 ]
@@ -102,7 +102,7 @@ puts "\n--- Fiber Detection Components Test ---"
 # Test individual detection methods
 test_block = -> { sleep(0.001) }
 
-puts "Testing detection methods for sleep operation:"
+puts 'Testing detection methods for sleep operation:'
 puts "  Execution pattern: #{AttemptTimeout.detect_by_execution_pattern(&test_block)}"
 puts "  Source analysis: #{AttemptTimeout.detect_by_source_analysis(&test_block)}"
 puts "  Timing analysis: #{AttemptTimeout.detect_by_timing_analysis(&test_block)}"

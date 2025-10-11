@@ -580,7 +580,7 @@ class Attempt
     return nil if log.nil?
 
     unless log.respond_to?(:puts) || log.respond_to?(:warn) || log.respond_to?(:write)
-      raise ArgumentError, "log must respond to :puts, :warn, or :write methods"
+      raise ArgumentError, 'log must respond to :puts, :warn, or :write methods'
     end
     log
   end
