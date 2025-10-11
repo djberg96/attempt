@@ -109,8 +109,8 @@ class AttemptTimeout
   def self.fiber_compatible_block?(&block)
     # Try multiple detection strategies
     detect_by_execution_pattern(&block) ||
-    detect_by_source_analysis(&block) ||
-    detect_by_timing_analysis(&block)
+      detect_by_source_analysis(&block) ||
+      detect_by_timing_analysis(&block)
   end
 
   # Method 1: Execute in a test fiber and see if it yields naturally
