@@ -29,7 +29,7 @@ test_cases = [
   {
     name: 'Simple calculation (should use custom/fiber)',
     block: -> { Math.sqrt(100) },
-    expected_strategy: [:custom, :fiber] # Could be either
+    expected_strategy: %i[custom fiber] # Could be either
   }
 ]
 
