@@ -320,7 +320,7 @@ class Attempt
         yield
       end
 
-      return result
+      result
 
     rescue @level => err
       remaining_tries = max_tries - attempts_made
@@ -409,7 +409,7 @@ class Attempt
   # Custom timeout using our AttemptTimeout class
   def execute_with_custom_timeout(timeout_value, &block)
     begin
-      return AttemptTimeout.timeout(timeout_value, &block)
+      AttemptTimeout.timeout(timeout_value, &block)
     rescue AttemptTimeout::Error => err
       raise Timeout::Error, err.message # Convert to expected exception type
     end
@@ -430,7 +430,7 @@ class Attempt
     end
 
     # Strategy 4: Thread-based timeout with better error handling
-    return execute_with_thread_timeout(timeout_value, &block)
+    execute_with_thread_timeout(timeout_value, &block)
   rescue
     # Strategy 5: Last resort - use Ruby's Timeout (least reliable)
     Timeout.timeout(timeout_value, &block)
@@ -511,7 +511,7 @@ class Attempt
   # Fiber-based timeout - lightweight alternative
   def execute_with_fiber_timeout(timeout_value, &block)
     begin
-      return AttemptTimeout.fiber_timeout(timeout_value, &block)
+      AttemptTimeout.fiber_timeout(timeout_value, &block)
     rescue AttemptTimeout::Error => err
       raise Timeout::Error, err.message # Convert to expected exception type
     end
