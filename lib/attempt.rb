@@ -227,30 +227,12 @@ class Attempt
   end
 
   # Improved thread-based timeout
-  def execute_with_thread_timeout(timeout_value)
-    result = nil
-    exception = nil
-    completed = false
-
-    thread = Thread.new do
-      begin
-        result = yield
-      rescue => err
-        exception = err
-      ensure
-        completed = true
-      end
+  def execute_with_thread_timeout(timeout_value, &block)
+    begin
+      AttemptTimeout.thread_timeout(timeout_value, &block)
+    rescue AttemptTimeout::Error => err
+      raise Timeout::Error, err.message # Convert to expected exception type
     end
-
-    # Wait for completion or timeout
-    unless thread.join(timeout_value)
-      thread.kill
-      thread.join(0.1) # Give thread time to clean up
-      raise Timeout::Error, "execution expired after #{timeout_value} seconds"
-    end
-
-    raise exception if exception
-    result
   end
 
   # Fiber-based timeout - lightweight alternative
