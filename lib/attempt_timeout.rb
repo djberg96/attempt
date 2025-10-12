@@ -83,8 +83,9 @@ class AttemptTimeout
       # Process completed immediately
       result = Marshal.load(reader)
     else
-      # Wait for timeout
-      if reader.wait_readable(timeout_value)
+      # Wait for timeout using IO.select (compatible with older Ruby)
+      ready = IO.select([reader], nil, nil, timeout_value)
+      if ready
         Process.waitpid(pid)
         result = Marshal.load(reader)
       else
