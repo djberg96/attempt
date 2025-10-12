@@ -57,7 +57,8 @@ class Attempt
   #               until the maximum number of attempts has been made. The default is true.
   # * timeout   - Timeout in seconds to automatically wrap your proc in a Timeout block.
   #               Must be positive if provided. The default is nil (no timeout).
-  # * timeout_strategy - Strategy for timeout implementation. Options: :auto (default), :custom, :thread, :process, :fiber, :ruby_timeout
+  # * timeout_strategy - Strategy for timeout implementation. Options are:
+  #               :auto (default), :custom, :thread, :process, :fiber, :ruby_timeout
   #
   # Example:
   #
