@@ -32,6 +32,34 @@ class AttemptTimeout
     end
   end
 
+  def self.thread_timeout(timeout_value, &block)
+    return yield if timeout_value.nil? || timeout_value <= 0
+
+    result = nil
+    exception = nil
+    completed = false
+
+    thread = Thread.new do
+      begin
+        result = yield
+      rescue => err
+        exception = err
+      ensure
+        completed = true
+      end
+    end
+
+    # Wait for completion or timeout
+    unless thread.join(timeout_value)
+      thread.kill
+      thread.join(0.1) # Give thread time to clean up
+      raise Timeout::Error, "execution expired after #{timeout_value} seconds"
+    end
+
+    raise exception if exception
+    result
+  end
+
   # Process-based timeout - most reliable for I/O operations
   def self.process_timeout(timeout_value, &block)
     return yield if timeout_value.nil? || timeout_value <= 0
@@ -55,8 +83,9 @@ class AttemptTimeout
       # Process completed immediately
       result = Marshal.load(reader)
     else
-      # Wait for timeout
-      if reader.wait_readable(timeout_value)
+      # Wait for timeout using IO.select (compatible with older Ruby)
+      ready = IO.select([reader], nil, nil, timeout_value)
+      if ready
         Process.waitpid(pid)
         result = Marshal.load(reader)
       else
