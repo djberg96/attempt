@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-require 'rspec'
-require_relative '../lib/attempt_timeout'
+# frozen_string_literal: true
 
-RSpec.describe AttemptTimeout do
+require 'spec_helper'
+require 'attempt_timeout'
+
+RSpec.describe AttemptTimeout, :requires_fiber_alive do
   describe '.timeout' do
     it 'delegates to ThreadStrategy' do
       result = described_class.timeout(1) { 'main timeout' }

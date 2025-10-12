@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'rspec'
+require 'spec_helper'
 require 'attempt_timeout'
 
-RSpec.describe 'AttemptTimeout fiber strategies' do
+RSpec.describe 'AttemptTimeout fiber strategies', :requires_fiber_alive do
   describe 'AttemptTimeout.fiber_only_timeout' do
     it 'returns the block result when execution completes within timeout' do
       result = AttemptTimeout.fiber_only_timeout(1) { 'fiber success' }

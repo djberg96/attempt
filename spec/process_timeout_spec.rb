@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'rspec'
+require 'spec_helper'
 require 'attempt_timeout'
 
-RSpec.describe 'AttemptTimeout process_timeout strategy' do
+RSpec.describe 'AttemptTimeout process_timeout strategy', :requires_fork do
   describe 'AttemptTimeout.process_timeout' do
     it 'returns the block result when execution completes within timeout' do
       result = AttemptTimeout.process_timeout(2) { 'process success' }

@@ -8,7 +8,7 @@
 #
 # TODO: Test that an Attempt::Warning is raised.
 #####################################################################
-require 'rspec'
+require 'spec_helper'
 require 'attempt'
 require 'stringio'
 

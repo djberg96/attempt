@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'rspec'
+require 'spec_helper'
 require 'attempt_timeout'
 
-RSpec.describe 'AttemptTimeout detection methods' do
+RSpec.describe 'AttemptTimeout detection methods', :requires_fiber_alive do
   describe 'AttemptTimeout.fiber_compatible_block?' do
     it 'returns boolean for any block' do
       result = AttemptTimeout.fiber_compatible_block? { 1 + 1 }

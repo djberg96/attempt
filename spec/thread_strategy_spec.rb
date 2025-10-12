@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rspec'
+require 'spec_helper'
 require 'attempt_timeout'
 
 RSpec.describe 'AttemptTimeout thread_timeout strategy' do
